@@ -95,6 +95,21 @@ namespace Consoler
 
 	public sealed class OptionalAttribute : ParameterAttribute
 	{
+		private object _defaultValue;
+
+		public object Default
+		{
+			get
+			{
+				return _defaultValue;
+			}
+
+			set
+			{
+				_defaultValue = value;
+			}
+		}
+
 		public OptionalAttribute(params string[] altNames) 
 			: base(false, altNames)
 		{
