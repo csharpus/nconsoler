@@ -20,8 +20,8 @@ namespace Consoler
 
 			[Required(Description = "Object description")]
 			string description,
-			
-			[Optional("b", "bk", Default = true, Description = "Boolean value")]
+
+			[Optional(false, "b", "bk", Description = "Boolean value")]
 			bool book)
 		{
 			Console.WriteLine("Delete");
