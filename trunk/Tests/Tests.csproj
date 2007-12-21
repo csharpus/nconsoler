@@ -40,7 +40,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Consoler\Core.csproj">
+    <ProjectReference Include="..\Core\Core.csproj">
       <Project>{7B653F7D-898C-491E-8379-3D3EA0172D43}</Project>
       <Name>Core</Name>
     </ProjectReference>
