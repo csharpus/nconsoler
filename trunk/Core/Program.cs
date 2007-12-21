@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 
-namespace Consoler
+namespace NConsoler
 {
 	class Program
 	{
@@ -22,9 +22,12 @@ namespace Consoler
 			string description,
 
 			[Optional(false, "b", "bk", Description = "Boolean value")]
-			bool book)
+			bool book,
+			
+			[Optional("")]
+			string comment)
 		{
-			Console.WriteLine("Delete");
+			Console.WriteLine("Delete {0} {1} {2} {3}", count, description, book, comment);
 		}
 	}
 }
