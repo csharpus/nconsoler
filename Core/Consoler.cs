@@ -32,7 +32,7 @@ namespace NConsoler
 		{
 			_targetType = targetType;
 			_args = args;
-			MethodInfo[] methods = typeof(Program).GetMethods(BindingFlags.Public | BindingFlags.Static);
+			MethodInfo[] methods = _targetType.GetMethods(BindingFlags.Public | BindingFlags.Static);
 			foreach (MethodInfo method in methods)
 			{
 				object[] attributes = method.GetCustomAttributes(false);
