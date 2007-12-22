@@ -20,14 +20,14 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithOneParameter()
+		public void OneParameter()
 		{
 			messenger.Write("parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithOneParameter), new string[] { "parameter" });
+			Consolery.Run(typeof(OneParameterProgram), new string[] { "parameter" });
 		}
 
-		public class ConsoleProgramWithOneParameter
+		public class OneParameterProgram
 		{
 			[Action]
 			public static void RunProgram([Required]string parameter)
@@ -37,11 +37,11 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithManyParameters()
+		public void ManyParameters()
 		{
 			messenger.Write("string 1 True string 1 True");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithManyParameters), 
+			Consolery.Run(typeof(ManyParametersProgram), 
 				new string[] { "string", "1", "true", "/os:string", "/oi:1", "/ob" });
 		}
 
@@ -50,20 +50,20 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("string 1 True 0 0 False");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithManyParameters),
+			Consolery.Run(typeof(ManyParametersProgram),
 				new string[] { "string", "1", "true" });
 		}
 
 		[Test]
-		public void RunConsoleProgramWithNegativeBooleanParameter()
+		public void NegativeBooleanParameter()
 		{
 			messenger.Write("string 1 True 0 0 False");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithManyParameters),
+			Consolery.Run(typeof(ManyParametersProgram),
 				new string[] { "string", "1", "true", "/-ob" });
 		}
 
-		public class ConsoleProgramWithManyParameters
+		public class ManyParametersProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -86,27 +86,27 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithoutMethods()
+		public void WithoutMethods()
 		{
-			messenger.Write("string 1 True string 1 True");
+			messenger.Write("Can not find any public static method in type \"WithoutMethodsProgram\" marked with [Action] attribute");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithoutMethods), new string[] { "string" }, messenger);
+			Consolery.Run(typeof(WithoutMethodsProgram), new string[] { "string" }, messenger);
 		}
 
-		public class ConsoleProgramWithoutMethods
+		public class WithoutMethodsProgram
 		{
 		}
 
 		[Test]
-		public void RunConsoleProgramWithWrongParameterOrder()
+		public void WrongParameterOrder()
 		{
 			messenger.Write("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"RunProgram\" parameter \"requiredParameter\"");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithWrongParameterOrder), 
+			Consolery.Run(typeof(WrongParameterOrderProgram), 
 				new string[] { "string" }, messenger);
 		}
 
-		public class ConsoleProgramWithWrongParameterOrder
+		public class WrongParameterOrderProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -118,15 +118,15 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithWrongDefaultValueForOptionalStringParameter()
+		public void WrongDefaultValueForOptionalStringParameter()
 		{
 			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithWrongDefaultValueForOptionalStringParameter),
+			Consolery.Run(typeof(WrongDefaultValueForOptionalStringParameterProgram),
 				new string[] { }, messenger);
 		}
 
-		public class ConsoleProgramWithWrongDefaultValueForOptionalStringParameter
+		public class WrongDefaultValueForOptionalStringParameterProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -137,15 +137,15 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithWrongDefaultValueForOptionalIntegerParameter()
+		public void WrongDefaultValueForOptionalIntegerParameter()
 		{
 			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithWrongDefaultValueForOptionalIntegerParameter),
+			Consolery.Run(typeof(WrongDefaultValueForOptionalIntegerParameterProgram),
 				new string[] { }, messenger);
 		}
 
-		public class ConsoleProgramWithWrongDefaultValueForOptionalIntegerParameter
+		public class WrongDefaultValueForOptionalIntegerParameterProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -156,15 +156,15 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithVeryBigDefaultValueForOptionalIntegerParameter()
+		public void VeryBigDefaultValueForOptionalIntegerParameter()
 		{
 			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithVeryBigDefaultValueForOptionalIntegerParameter),
+			Consolery.Run(typeof(VeryBigDefaultValueForOptionalIntegerParameterProgram),
 				new string[] { }, messenger);
 		}
 
-		public class ConsoleProgramWithVeryBigDefaultValueForOptionalIntegerParameter
+		public class VeryBigDefaultValueForOptionalIntegerParameterProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -175,15 +175,15 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void RunConsoleProgramWithDuplicatedParameterNames()
+		public void DuplicatedParameterNames()
 		{
-			messenger.Write("");
+			messenger.Write("Found duplicated parameter name \"a\" in method \"RunProgram\". Please check alt names for optional parameters");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ConsoleProgramWithDuplicatedParameterNames),
+			Consolery.Run(typeof(DuplicatedParameterNamesProgram),
 				new string[] { }, messenger);
 		}
 
-		public class ConsoleProgramWithDuplicatedParameterNames
+		public class DuplicatedParameterNamesProgram
 		{
 			[Action]
 			public static void RunProgram(
@@ -192,6 +192,60 @@ namespace NConsoler.Tests
 			{
 
 			}
+		}
+
+		[Test]
+		public void DuplicatedParameterAttributes()
+		{
+			messenger.Write("More than one attribute is applied to parameter \"parameter\" in method \"RunProgram\"");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(DuplicatedParameterAttributesProgram),
+				new string[] { "parameter" }, messenger);
+		}
+
+		public class DuplicatedParameterAttributesProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Required][Optional("")]string parameter)
+			{
+			}
+		}
+
+		[Test]
+		public void NotAllRequiredParametersIsSet()
+		{
+			messenger.Write("Not all required parameters are set");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OneParameterProgram),
+				new string[] { }, messenger);
+		}
+
+		[Test]
+		public void UnknownParameter()
+		{
+			messenger.Write("Unknown parameter name /unknown:value");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OneParameterProgram),
+				new string[] { "required", "/unknown:value" }, messenger);
+		}
+
+		[Test]
+		public void UnknownBooleanParameterWithNegativeSign()
+		{
+			messenger.Write("Unknown parameter name /-unknown");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OneParameterProgram),
+				new string[] { "required", "/-unknown" }, messenger);
+		}
+
+		[Test]
+		public void UnknownBooleanParameter()
+		{
+			messenger.Write("Unknown parameter name /unknown");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OneParameterProgram),
+				new string[] { "required", "/unknown" }, messenger);
 		}
 
 		[TearDown]
