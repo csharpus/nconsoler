@@ -11,7 +11,7 @@ namespace NConsoler.Example
 	{
 		static void Main(string[] args)
 		{
-			Consoler.Run(typeof(Program), args);
+			Consolery.Run(typeof(Program), args);
 		}
 
 		// consoler.exe 10 "description" /b

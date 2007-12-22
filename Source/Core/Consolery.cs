@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace NConsoler
 {
-	public sealed class Consoler
+	public sealed class Consolery
 	{
 		public static void Run(Type targetType, string[] args)
 		{
@@ -16,9 +16,9 @@ namespace NConsoler
 		{
 			try
 			{
-				new Consoler(targetType, args).Run();
+				new Consolery(targetType, args).Run();
 			}
-			catch (NConsoleException e)
+			catch (NConsolerException e)
 			{
 				messenger.Write(e.Message);
 			}
@@ -28,7 +28,7 @@ namespace NConsoler
 		private string[] _args;
 		private List<MethodInfo> _actionMethods = new List<MethodInfo>();
 
-		private Consoler(Type targetType, string[] args)
+		private Consolery(Type targetType, string[] args)
 		{
 			_targetType = targetType;
 			_args = args;
@@ -55,37 +55,37 @@ namespace NConsoler
 
 		object ConvertValue(string value, Type argumentType)
 		{
-				if (argumentType == typeof(int))
+			if (argumentType == typeof(int))
+			{
+				try
 				{
-					try
-					{
-						return Convert.ToInt32(value);
-					}
-					catch (FormatException fe)
-					{
-						throw new NConsoleException("Could not convert \"{0}\" to integer", value);
-					}
-					catch (OverflowException oe)
-					{
-						throw new NConsoleException("Value \"{0}\" is too big or too small", value);
-					}
+					return Convert.ToInt32(value);
 				}
-				if (argumentType == typeof(string))
+				catch (FormatException fe)
 				{
-					return value;
+					throw new NConsolerException("Could not convert \"{0}\" to integer", value);
 				}
-				if (argumentType == typeof(bool))
+				catch (OverflowException oe)
 				{
-					try
-					{
-						return Convert.ToBoolean(value);
-					}
-					catch (FormatException fe)
-					{
-						throw new NConsoleException("Could not convert \"{0}\" to boolean", value);
-					}
+					throw new NConsolerException("Value \"{0}\" is too big or too small", value);
 				}
-			throw new NConsoleException("Unknown type is used in your method {0}", argumentType.FullName);
+			}
+			if (argumentType == typeof(string))
+			{
+				return value;
+			}
+			if (argumentType == typeof(bool))
+			{
+				try
+				{
+					return Convert.ToBoolean(value);
+				}
+				catch (FormatException)
+				{
+					throw new NConsolerException("Could not convert \"{0}\" to boolean", value);
+				}
+			}
+			throw new NConsolerException("Unknown type is used in your method {0}", argumentType.FullName);
 		}
 
 		private struct ParameterData
@@ -119,7 +119,7 @@ namespace NConsoler
 						requiredParameterCount++;
 						if (_args.Length < requiredParameterCount)
 						{
-							throw new NConsoleException("Not all required parameters is set");
+							throw new NConsolerException("Not all required parameters is set");
 						}
 						parameterValues.Add(ConvertValue(_args[argumentIndex], info.ParameterType));
 						
@@ -146,7 +146,7 @@ namespace NConsoler
 				{
 					if (!_args[i].StartsWith("/"))
 					{
-						throw new NConsoleException("Unknown parameter {0}", _args[i]);
+						throw new NConsolerException("Unknown parameter {0}", _args[i]);
 					}
 					if (_args[i].Contains(":"))
 					{
@@ -155,12 +155,12 @@ namespace NConsoler
 						string value = _args[i].Substring(semicolonPosition + 1);
 						if (!aliases.ContainsKey(name))
 						{
-							throw new NConsoleException("Unknown parameter name {0}", _args[i]);
+							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
 						}
 						if (passedOptionalAliases.Contains(aliases[name].primaryName))
 						{
 #warning use real names, and if two parameters with different aliases but the same primary names are passed show specified error
-							throw new NConsoleException("Parameter with name {0} passed two times", aliases[name].primaryName);
+							throw new NConsolerException("Parameter with name {0} passed two times", aliases[name].primaryName);
 						}
 						passedOptionalAliases.Add(aliases[name].primaryName);
 						parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
@@ -171,7 +171,7 @@ namespace NConsoler
 						string name = _args[i].Substring(2);
 						if (!aliases.ContainsKey(name))
 						{
-							throw new NConsoleException("Unknown parameter name {0}", _args[i]);
+							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
 						}
 						parameterValues[aliases[name].position] = ConvertValue("false", aliases[name].type);
 					}
@@ -180,7 +180,7 @@ namespace NConsoler
 						string name = _args[i].Substring(1);
 						if (!aliases.ContainsKey(name))
 						{
-							throw new NConsoleException("Unknown parameter name {0}", _args[i]);
+							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
 						}
 						parameterValues[aliases[name].position] = ConvertValue("true", aliases[name].type);
 					}
@@ -193,7 +193,7 @@ namespace NConsoler
 		{
 			if (_actionMethods.Count == 0)
 			{
-				throw new NConsoleException("Can not find any public static method in type \"{0}\" in assembly \"{1}\" marked with [Action] attribute ", _targetType.FullName, _targetType.Assembly.FullName);
+				throw new NConsolerException("Can not find any public static method in type \"{0}\" marked with [Action] attribute ", _targetType.Name);
 			}
 			int requiredParameterCount = 0;
 			foreach (MethodInfo methodInfo in _actionMethods)
@@ -205,7 +205,7 @@ namespace NConsoler
 					object[] attributes = info.GetCustomAttributes(typeof(ParameterAttribute), false);
 					if (attributes.Length > 1)
 					{
-						throw new NConsoleException("More than one attribute is applied to parameter {0} in method {1} in type {2}", info.Name, methodInfo.Name, _targetType.FullName);
+						throw new NConsolerException("More than one attribute is applied to parameter \"{0}\" in method \"{1}\"", info.Name, methodInfo.Name);
 					}
 					if (attributes.Length == 1 && attributes[0].GetType() == typeof(OptionalAttribute))
 					{
@@ -213,7 +213,7 @@ namespace NConsoler
 						OptionalAttribute optional = (attributes[0] as OptionalAttribute);
 						if (!optional.Default.GetType().IsAssignableFrom(info.ParameterType))
 						{
-							throw new NConsoleException("Default value for an optional parameter \"{0}\" in method \"{1}\" in type \"{2}\" can not be assigned to the parameter", info.Name, methodInfo.Name, _targetType.FullName);
+							throw new NConsolerException("Default value for an optional parameter \"{0}\" in method \"{1}\" can not be assigned to the parameter", info.Name, methodInfo.Name);
 						}
 					}
 					if (IsRequired(info))
@@ -225,7 +225,7 @@ namespace NConsoler
 					{
 						if (parameterNames.Contains(info.Name))
 						{
-							throw new NConsoleException("Found duplicated parameter name {0} in method {1}. Please check alt names for optional parameters", info.Name, methodInfo.Name);
+							throw new NConsolerException("Found duplicated parameter name \"{0}\" in method \"{1}\". Please check alt names for optional parameters", info.Name, methodInfo.Name);
 						}
 						parameterNames.Add(info.Name);
 						OptionalAttribute optional = attributes[0] as OptionalAttribute;
@@ -233,13 +233,13 @@ namespace NConsoler
 						{
 							if (parameterNames.Contains(altName))
 							{
-								throw new NConsoleException("Found duplicated parameter name {0} in method {1}. Please check alt names for optional parameters", altName, methodInfo.Name);
+								throw new NConsolerException("Found duplicated parameter name \"{0}\" in method \"{1}\". Please check alt names for optional parameters", altName, methodInfo.Name);
 							}
 						}
 					}
 					if (optionalFound && IsRequired(info))
 					{
-						throw new NConsoleException("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"{0}\" parameter \"{1}\"", methodInfo.Name, info.Name);
+						throw new NConsolerException("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"{0}\" parameter \"{1}\"", methodInfo.Name, info.Name);
 					}
 				}
 			}
@@ -332,9 +332,9 @@ namespace NConsoler
 		}
 	}
 
-	sealed class NConsoleException : Exception
+	sealed class NConsolerException : Exception
 	{
-		public NConsoleException(string message, params string[] arguments)
+		public NConsolerException(string message, params string[] arguments)
 			: base(String.Format(message, arguments))
 		{
 		}
