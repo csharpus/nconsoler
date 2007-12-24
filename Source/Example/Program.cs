@@ -15,7 +15,7 @@ namespace NConsoler.Example
 		}
 
 		// consoler.exe 10 "description" /b
-		[Action]
+		[Action("Deletes some objects")]
 		public static void Delete(
 			[Required(Description = "Object count")]
 			int count,
@@ -26,7 +26,7 @@ namespace NConsoler.Example
 			[Optional(false, "b", "bk", Description = "Boolean value")]
 			bool book,
 
-			[Optional("")]
+			[Optional("", "c")]
 			string comment)
 		{
 			Console.WriteLine("Delete {0} {1} {2} {3}", count, description, book, comment);

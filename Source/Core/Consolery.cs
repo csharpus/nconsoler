@@ -16,7 +16,7 @@ namespace NConsoler
 		{
 			try
 			{
-				new Consolery(targetType, args).Run();
+				new Consolery(targetType, args, messenger).Run();
 			}
 			catch (NConsolerException e)
 			{
@@ -27,11 +27,13 @@ namespace NConsoler
 		private Type _targetType;
 		private string[] _args;
 		private List<MethodInfo> _actionMethods = new List<MethodInfo>();
+		private IMessenger _messenger;
 
-		private Consolery(Type targetType, string[] args)
+		private Consolery(Type targetType, string[] args, IMessenger messenger)
 		{
 			_targetType = targetType;
 			_args = args;
+			_messenger = messenger;
 			MethodInfo[] methods = _targetType.GetMethods(BindingFlags.Public | BindingFlags.Static);
 			foreach (MethodInfo method in methods)
 			{
@@ -102,6 +104,39 @@ namespace NConsoler
 					throw new NConsolerException("Could not convert \"{0}\" to boolean", value);
 				}
 			}
+			if (argumentType == typeof(string[]))
+			{
+				return value.Split('+');
+			}
+			if (argumentType == typeof(int[]))
+			{
+				string[] values = value.Split('+');
+				int[] valuesArray = new int[values.Length];
+				for (int i = 0; i < values.Length; i++)
+				{
+					valuesArray[i] = (int)ConvertValue(values[i], typeof(int));
+				}
+				return valuesArray;
+			}
+			if (argumentType == typeof(DateTime))
+			{
+				string[] parts = value.Split('-');
+				if (parts.Length != 3)
+				{
+					throw new NConsolerException("Could not convert {0} to Date", value);
+				}
+				int day = (int)ConvertValue(parts[0], typeof(int));
+				int month = (int)ConvertValue(parts[1], typeof(int));
+				int year = (int)ConvertValue(parts[2], typeof(int));
+				try
+				{
+					return new DateTime(year, month, day);
+				}
+				catch(ArgumentException)
+				{
+					throw new NConsolerException("Could not convert {0} to Date", value);
+				}
+			}
 			throw new NConsolerException("Unknown type is used in your method {0}", argumentType.FullName);
 		}
 
@@ -122,15 +157,19 @@ namespace NConsoler
 		private void Run()
 		{
 			ValidateMetadata();
-			ValidateInput();
-			if (_actionMethods.Count == 1)
+			if (_args.Length == 0 || _args[0] == "/?" || _args[0] == "/help")
 			{
-				_actionMethods[0].Invoke(null, BuildParameterArray(_actionMethods[0]));
+				PrintUsage();
+				return;
 			}
+			MethodInfo currentMethod = GetCurrentMethod();
+			ValidateInput(currentMethod);
+			currentMethod.Invoke(null, BuildParameterArray(currentMethod));
 		}
 
 		private object[] BuildParameterArray(MethodInfo method)
 		{
+#warning check option parameter
 			int argumentIndex = 0;
 			List<object> parameterValues = new List<object>();
 			Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
@@ -178,19 +217,104 @@ namespace NConsoler
 			return requiredParameterCount;
 		}
 
-		#region Validation
-
-		private void ValidateInput()
+		private MethodInfo GetCurrentMethod()
 		{
 			if (_actionMethods.Count == 1)
 			{
-				CheckAllRequiredParametersAreSet(_actionMethods[0]);
-				CheckOptionalParametersAreNotDuplicated(_actionMethods[0]);
-				CheckUnknownParametersAreNotPassed(_actionMethods[0]);
+				return _actionMethods[0];
 			}
 			else
 			{
+				if (_args.Length == 0)
+				{
+					PrintUsage();
+					throw new NConsolerException("Error");
+				}
+				string methodName = _args[0].ToLower();
+				foreach (MethodInfo method in _actionMethods)
+				{
+					if (method.Name.ToLower() == methodName)
+					{
+						return method;
+					}
+				}
+				PrintUsage();
+				throw new NConsolerException("Unknown option {0}, print usage", _args[0]);
 			}
+		}
+
+		private void PrintUsage()
+		{
+			foreach (MethodInfo method in _actionMethods)
+			{
+				object[] actionAttributes = method.GetCustomAttributes(typeof(ActionAttribute), false);
+				ActionAttribute action = actionAttributes[0] as ActionAttribute;
+				_messenger.Write(method.Name.ToLower() + " " + action.Description);
+				_messenger.Write("");
+				// _messenger.Write("Usage: program ");
+				Dictionary<string, string> parameters = new Dictionary<string, string>();
+				foreach (ParameterInfo parameter in method.GetParameters())
+				{
+					object[] parameterAttributes = parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
+					if (parameterAttributes.Length > 0)
+					{
+						ParameterAttribute attribute = parameterAttributes[0] as ParameterAttribute;
+						string name = String.Empty;
+						if (attribute is RequiredAttribute)
+						{
+							name = parameter.Name;
+						}
+						else
+						{
+							OptionalAttribute optional = parameterAttributes[0] as OptionalAttribute;
+							if (parameter.ParameterType == typeof(bool))
+							{
+								if (optional.AltNames.Length > 0)
+								{
+									name = "/" + optional.AltNames[0];
+								}
+								else
+								{
+									name = "/" + parameter.Name;
+								}
+							}
+							else
+							{
+								if (optional.AltNames.Length > 0)
+								{
+									name = "/" + optional.AltNames[0] + ":" + parameter.Name;
+								}
+								else
+								{
+									name = "/" + parameter.Name + ":" + parameter.Name;
+								}
+							}
+						}
+						parameters.Add(name, attribute.Description);
+					}
+					else
+					{
+						parameters.Add(parameter.Name, String.Empty);
+					}
+				}
+				_messenger.Write("Usage: program [" + String.Join("] [", new List<string>(parameters.Keys).ToArray()) + "]");
+				foreach (KeyValuePair<string, string> pair in parameters)
+				{
+					if (pair.Value != String.Empty)
+					{
+						_messenger.Write("[" + pair.Key + "] " + pair.Value);
+					}
+				}
+			}
+		}
+
+		#region Validation
+
+		private void ValidateInput(MethodInfo method)
+		{
+			CheckAllRequiredParametersAreSet(method);
+			CheckOptionalParametersAreNotDuplicated(method);
+			CheckUnknownParametersAreNotPassed(method);
 		}
 
 		private void CheckAllRequiredParametersAreSet(MethodInfo method)
@@ -389,12 +513,35 @@ namespace NConsoler
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 	public sealed class ActionAttribute : Attribute
 	{
+		public ActionAttribute()
+		{
+		}
+
+		public ActionAttribute(string description)
+		{
+			_description = description;
+		}
+
+		private string _description = String.Empty;
+
+		public string Description
+		{
+			get
+			{
+				return _description;
+			}
+
+			set
+			{
+				_description = value;
+			}
+		}
 	}
 
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
 	public class ParameterAttribute : Attribute
 	{
-		private string _description;
+		private string _description = String.Empty;
 
 		public string Description
 		{
