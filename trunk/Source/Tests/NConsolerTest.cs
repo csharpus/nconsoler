@@ -217,8 +217,8 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("Not all required parameters are set");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(OneParameterProgram),
-				new string[] { }, messenger);
+			Consolery.Run(typeof(ManyParametersProgram),
+				new string[] { "test" }, messenger);
 		}
 
 		[Test]
