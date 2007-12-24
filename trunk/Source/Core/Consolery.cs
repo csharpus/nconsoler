@@ -125,40 +125,44 @@ namespace NConsoler
 			ValidateInput();
 			if (_actionMethods.Count == 1)
 			{
-				int argumentIndex = 0;
-				List<object> parameterValues = new List<object>();
-				Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
-				List<string> passedOptionalAliases = new List<string>();
-				foreach (ParameterInfo info in _actionMethods[0].GetParameters())
-				{
-					if (IsRequired(info))
-					{
-						parameterValues.Add(ConvertValue(_args[argumentIndex], info.ParameterType));
-					}
-					else
-					{
-						OptionalAttribute optional = GetOptional(info);
-
-						foreach (string altName in optional.AltNames)
-						{
-							aliases.Add(altName,
-								new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
-						}
-						aliases.Add(info.Name,
-							new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
-						parameterValues.Add(optional.Default);
-					}
-					argumentIndex++;
-				}
-				Dictionary<string, string> values = new Dictionary<string, string>();
-				for (int i = RequiredParameterCount(_actionMethods[0]); i < _args.Length; i++)
-				{
-					string name = ParameterName(_args[i]);
-					string value = ParameterValue(_args[i]);
-					parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
-				}
-				_actionMethods[0].Invoke(null, parameterValues.ToArray());
+				_actionMethods[0].Invoke(null, BuildParameterArray(_actionMethods[0]));
 			}
+		}
+
+		private object[] BuildParameterArray(MethodInfo method)
+		{
+			int argumentIndex = 0;
+			List<object> parameterValues = new List<object>();
+			Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
+			foreach (ParameterInfo info in method.GetParameters())
+			{
+				if (IsRequired(info))
+				{
+					parameterValues.Add(ConvertValue(_args[argumentIndex], info.ParameterType));
+				}
+				else
+				{
+					OptionalAttribute optional = GetOptional(info);
+
+					foreach (string altName in optional.AltNames)
+					{
+						aliases.Add(altName,
+							new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
+					}
+					aliases.Add(info.Name,
+						new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
+					parameterValues.Add(optional.Default);
+				}
+				argumentIndex++;
+			}
+			Dictionary<string, string> values = new Dictionary<string, string>();
+			for (int i = RequiredParameterCount(method); i < _args.Length; i++)
+			{
+				string name = ParameterName(_args[i]);
+				string value = ParameterValue(_args[i]);
+				parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
+			}
+			return parameterValues.ToArray();
 		}
 
 		private int RequiredParameterCount(MethodInfo method)
