@@ -128,19 +128,16 @@ namespace NConsoler
 				int argumentIndex = 0;
 				List<object> parameterValues = new List<object>();
 				Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
-				int requiredParameterCount = 0;
 				List<string> passedOptionalAliases = new List<string>();
 				foreach (ParameterInfo info in _actionMethods[0].GetParameters())
 				{
 					if (IsRequired(info))
 					{
-						requiredParameterCount++;
 						parameterValues.Add(ConvertValue(_args[argumentIndex], info.ParameterType));
 					}
-					else // /a /a:value /-a
+					else
 					{
-						object[] attributes = info.GetCustomAttributes(typeof(ParameterAttribute), false);
-						OptionalAttribute optional = attributes[0] as OptionalAttribute;
+						OptionalAttribute optional = GetOptional(info);
 
 						foreach (string altName in optional.AltNames)
 						{
@@ -154,48 +151,11 @@ namespace NConsoler
 					argumentIndex++;
 				}
 				Dictionary<string, string> values = new Dictionary<string, string>();
-				for (int i = requiredParameterCount; i < _args.Length; i++)
+				for (int i = RequiredParameterCount(_actionMethods[0]); i < _args.Length; i++)
 				{
-					//if (!_args[i].StartsWith("/"))
-					//{
-					//    throw new NConsolerException("Unknown parameter {0}", _args[i]);
-					//}
-					if (_args[i].Contains(":"))
-					{
-						int semicolonPosition = _args[i].IndexOf(':');
-						string name = _args[i].Substring(1, semicolonPosition - 1);
-						string value = _args[i].Substring(semicolonPosition + 1);
-						if (!aliases.ContainsKey(name))
-						{
-							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
-						}
-						if (passedOptionalAliases.Contains(aliases[name].primaryName))
-						{
-#warning use real names, and if two parameters with different aliases but the same primary names are passed show specified error
-							throw new NConsolerException("Parameter with name {0} passed two times", aliases[name].primaryName);
-						}
-						passedOptionalAliases.Add(aliases[name].primaryName);
-						parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
-
-					}
-					else if (_args[i].Contains("-"))
-					{
-						string name = _args[i].Substring(2);
-						if (!aliases.ContainsKey(name))
-						{
-							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
-						}
-						parameterValues[aliases[name].position] = ConvertValue("false", aliases[name].type);
-					}
-					else
-					{
-						string name = _args[i].Substring(1);
-						if (!aliases.ContainsKey(name))
-						{
-							throw new NConsolerException("Unknown parameter name {0}", _args[i]);
-						}
-						parameterValues[aliases[name].position] = ConvertValue("true", aliases[name].type);
-					}
+					string name = ParameterName(_args[i]);
+					string value = ParameterValue(_args[i]);
+					parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
 				}
 				_actionMethods[0].Invoke(null, parameterValues.ToArray());
 			}
@@ -222,6 +182,7 @@ namespace NConsoler
 			{
 				CheckAllRequiredParametersAreSet(_actionMethods[0]);
 				CheckOptionalParametersAreNotDuplicated(_actionMethods[0]);
+				CheckUnknownParametersAreNotPassed(_actionMethods[0]);
 			}
 			else
 			{
@@ -252,6 +213,22 @@ namespace NConsoler
 			}
 		}
 
+		private string ParameterValue(string parameter)
+		{
+			if (parameter.StartsWith("/-"))
+			{
+				return "false";
+			}
+			else if (parameter.Contains(":"))
+			{
+				return parameter.Substring(parameter.IndexOf(":") + 1);
+			}
+			else
+			{
+				return "true";
+			}
+		}
+
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
 		{
 			List<string> passedParameters = new List<string>();
@@ -272,6 +249,28 @@ namespace NConsoler
 
 		private void CheckUnknownParametersAreNotPassed(MethodInfo method)
 		{
+			List<string> parameterNames = new List<string>();
+			foreach (ParameterInfo parameter in method.GetParameters())
+			{
+				if (IsRequired(parameter))
+				{
+					continue;
+				}
+				parameterNames.Add(parameter.Name);
+				OptionalAttribute optional = GetOptional(parameter);
+				foreach (string altName in optional.AltNames)
+				{
+					parameterNames.Add(altName);
+				}
+			}
+			for (int i = RequiredParameterCount(method); i < _args.Length; i++)
+			{
+				string name = ParameterName(_args[i]);
+				if (!parameterNames.Contains(name))
+				{
+					throw new NConsolerException("Unknown parameter name {0}", _args[i]);
+				}
+			}
 		}
 
 		private void ValidateMetadata()
@@ -458,7 +457,7 @@ namespace NConsoler
 		}
 	}
 
-	sealed class NConsolerException : Exception
+	public sealed class NConsolerException : Exception
 	{
 		public NConsolerException(string message, params string[] arguments)
 			: base(String.Format(message, arguments))
