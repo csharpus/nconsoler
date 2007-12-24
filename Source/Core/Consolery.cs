@@ -249,8 +249,11 @@ namespace NConsoler
 			{
 				object[] actionAttributes = method.GetCustomAttributes(typeof(ActionAttribute), false);
 				ActionAttribute action = actionAttributes[0] as ActionAttribute;
-				_messenger.Write(method.Name.ToLower() + " " + action.Description);
-				_messenger.Write("");
+				if (_actionMethods.Count > 1)
+				{
+					_messenger.Write(method.Name.ToLower() + " " + action.Description);
+					_messenger.Write("");
+				}
 				// _messenger.Write("Usage: program ");
 				Dictionary<string, string> parameters = new Dictionary<string, string>();
 				foreach (ParameterInfo parameter in method.GetParameters())
@@ -271,22 +274,22 @@ namespace NConsoler
 							{
 								if (optional.AltNames.Length > 0)
 								{
-									name = "/" + optional.AltNames[0];
+									name = "[/" + optional.AltNames[0] + "]";
 								}
 								else
 								{
-									name = "/" + parameter.Name;
+									name = "[/" + parameter.Name + "]";
 								}
 							}
 							else
 							{
 								if (optional.AltNames.Length > 0)
 								{
-									name = "/" + optional.AltNames[0] + ":" + parameter.Name;
+									name = "[/" + optional.AltNames[0] + ":" + parameter.Name + "]";
 								}
 								else
 								{
-									name = "/" + parameter.Name + ":" + parameter.Name;
+									name = "[/" + parameter.Name + ":" + parameter.Name + "]";
 								}
 							}
 						}
@@ -297,12 +300,12 @@ namespace NConsoler
 						parameters.Add(parameter.Name, String.Empty);
 					}
 				}
-				_messenger.Write("Usage: program [" + String.Join("] [", new List<string>(parameters.Keys).ToArray()) + "]");
+				_messenger.Write("Usage: program " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
 				foreach (KeyValuePair<string, string> pair in parameters)
 				{
 					if (pair.Value != String.Empty)
 					{
-						_messenger.Write("[" + pair.Key + "] " + pair.Value);
+						_messenger.Write(pair.Key + " "+ pair.Value);
 					}
 				}
 			}
