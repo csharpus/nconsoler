@@ -258,41 +258,12 @@ namespace NConsoler
 				Dictionary<string, string> parameters = new Dictionary<string, string>();
 				foreach (ParameterInfo parameter in method.GetParameters())
 				{
-					object[] parameterAttributes = parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
+					object[] parameterAttributes = 
+						parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
 					if (parameterAttributes.Length > 0)
 					{
+						string name = GetDisplayName(parameter);
 						ParameterAttribute attribute = parameterAttributes[0] as ParameterAttribute;
-						string name = String.Empty;
-						if (attribute is RequiredAttribute)
-						{
-							name = parameter.Name;
-						}
-						else
-						{
-							OptionalAttribute optional = parameterAttributes[0] as OptionalAttribute;
-							if (parameter.ParameterType == typeof(bool))
-							{
-								if (optional.AltNames.Length > 0)
-								{
-									name = "[/" + optional.AltNames[0] + "]";
-								}
-								else
-								{
-									name = "[/" + parameter.Name + "]";
-								}
-							}
-							else
-							{
-								if (optional.AltNames.Length > 0)
-								{
-									name = "[/" + optional.AltNames[0] + ":" + parameter.Name + "]";
-								}
-								else
-								{
-									name = "[/" + parameter.Name + ":" + parameter.Name + "]";
-								}
-							}
-						}
 						parameters.Add(name, attribute.Description);
 					}
 					else
@@ -300,14 +271,43 @@ namespace NConsoler
 						parameters.Add(parameter.Name, String.Empty);
 					}
 				}
-				_messenger.Write("Usage: program " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+				AssemblyName aName = new AssemblyName(Assembly.GetEntryAssembly().FullName);
+				_messenger.Write("Usage: " + aName.Name + ".exe " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+				int maxLength = 0;
+				foreach (KeyValuePair<string, string> pair in parameters)
+				{
+					if (pair.Key.Length > maxLength)
+					{
+						maxLength = pair.Key.Length;
+					}
+				}
 				foreach (KeyValuePair<string, string> pair in parameters)
 				{
 					if (pair.Value != String.Empty)
 					{
-						_messenger.Write(pair.Key + " "+ pair.Value);
+						int difference = maxLength - pair.Key.Length + 2;
+						_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
 					}
 				}
+			}
+		}
+
+		private string GetDisplayName(ParameterInfo parameter)
+		{
+			if (IsRequired(parameter))
+			{
+				return parameter.Name;
+			}
+			else
+			{
+				OptionalAttribute optional = GetOptional(parameter);
+				string parameterName = 
+					(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
+				if (parameter.ParameterType == typeof(bool))
+				{
+					parameterName += ":" + parameter.Name;
+				}
+				return "[/" + parameterName + "]";
 			}
 		}
 
