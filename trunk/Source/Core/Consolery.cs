@@ -303,7 +303,7 @@ namespace NConsoler
 				OptionalAttribute optional = GetOptional(parameter);
 				string parameterName = 
 					(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
-				if (parameter.ParameterType == typeof(bool))
+				if (parameter.ParameterType != typeof(bool))
 				{
 					parameterName += ":" + parameter.Name;
 				}
