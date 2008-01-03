@@ -31,6 +31,20 @@ namespace NConsoler
 
 		private Consolery(Type targetType, string[] args, IMessenger messenger)
 		{
+			#region Parameter Validation
+			if (targetType == null)
+			{
+				throw new ArgumentNullException("targetType");
+			}
+			if (args == null)
+			{
+				throw new ArgumentNullException("args");
+			}
+			if (messenger == null)
+			{
+				throw new ArgumentNullException("messenger");
+			}
+			#endregion
 			_targetType = targetType;
 			_args = args;
 			_messenger = messenger;
@@ -55,6 +69,12 @@ namespace NConsoler
 			return attributes.Length == 0 || attributes[0].GetType() == typeof(RequiredAttribute);
 		}
 
+		private RequiredAttribute GetRequired(ParameterInfo info)
+		{
+			object[] attributes = info.GetCustomAttributes(typeof(RequiredAttribute), false);
+			return attributes[0] as RequiredAttribute;
+		}
+
 		private bool IsOptional(ParameterInfo info)
 		{
 			return !IsRequired(info);
@@ -66,10 +86,13 @@ namespace NConsoler
 			return attributes[0] as OptionalAttribute;
 		}
 
-		private RequiredAttribute GetRequired(ParameterInfo info)
+		private bool IsMulticommand
 		{
-			object[] attributes = info.GetCustomAttributes(typeof(RequiredAttribute), false);
-			return attributes[0] as RequiredAttribute;
+			get
+			{
+				return _actionMethods.Count > 1;
+			}
+
 		}
 
 		object ConvertValue(string value, Type argumentType)
@@ -157,7 +180,7 @@ namespace NConsoler
 		private void Run()
 		{
 			ValidateMetadata();
-			if (_args.Length == 0 || _args[0] == "/?" || _args[0] == "/help")
+			if (_args.Length == 0 || _args[0] == "/?" || _args[0] == "/help" || _args[0] == "/h")
 			{
 				PrintUsage();
 				return;
@@ -206,7 +229,7 @@ namespace NConsoler
 
 		private int RequiredParameterCount(MethodInfo method)
 		{
-			int requiredParameterCount = 0;
+			int requiredParameterCount = IsMulticommand ? 1 : 0;
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
 				if (IsRequired(parameter))
@@ -243,52 +266,80 @@ namespace NConsoler
 			}
 		}
 
-		private void PrintUsage()
+		private void PrintUsage(string subcommand)
 		{
 			foreach (MethodInfo method in _actionMethods)
 			{
-				object[] actionAttributes = method.GetCustomAttributes(typeof(ActionAttribute), false);
-				ActionAttribute action = actionAttributes[0] as ActionAttribute;
-				if (_actionMethods.Count > 1)
+				if (subcommand.ToLower() == method.Name.ToLower())
 				{
-					_messenger.Write(method.Name.ToLower() + " " + action.Description);
-					_messenger.Write("");
+					PrintUsage(method);
+					break;
 				}
-				// _messenger.Write("Usage: program ");
-				Dictionary<string, string> parameters = new Dictionary<string, string>();
-				foreach (ParameterInfo parameter in method.GetParameters())
+			}
+		}
+
+		private void PrintUsage(MethodInfo method)
+		{
+			Dictionary<string, string> parameters = new Dictionary<string, string>();
+			foreach (ParameterInfo parameter in method.GetParameters())
+			{
+				object[] parameterAttributes =
+					parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
+				if (parameterAttributes.Length > 0)
 				{
-					object[] parameterAttributes = 
-						parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
-					if (parameterAttributes.Length > 0)
-					{
-						string name = GetDisplayName(parameter);
-						ParameterAttribute attribute = parameterAttributes[0] as ParameterAttribute;
-						parameters.Add(name, attribute.Description);
-					}
-					else
-					{
-						parameters.Add(parameter.Name, String.Empty);
-					}
+					string name = GetDisplayName(parameter);
+					ParameterAttribute attribute = parameterAttributes[0] as ParameterAttribute;
+					parameters.Add(name, attribute.Description);
 				}
-				AssemblyName aName = new AssemblyName(Assembly.GetEntryAssembly().FullName);
-				_messenger.Write("Usage: " + aName.Name + ".exe " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
-				int maxLength = 0;
-				foreach (KeyValuePair<string, string> pair in parameters)
+				else
 				{
-					if (pair.Key.Length > maxLength)
-					{
-						maxLength = pair.Key.Length;
-					}
+					parameters.Add(parameter.Name, String.Empty);
 				}
-				foreach (KeyValuePair<string, string> pair in parameters)
+			}
+			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+			int maxLength = 0;
+			foreach (KeyValuePair<string, string> pair in parameters)
+			{
+				if (pair.Key.Length > maxLength)
 				{
-					if (pair.Value != String.Empty)
-					{
-						int difference = maxLength - pair.Key.Length + 2;
-						_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
-					}
+					maxLength = pair.Key.Length;
 				}
+			}
+			foreach (KeyValuePair<string, string> pair in parameters)
+			{
+				if (pair.Value != String.Empty)
+				{
+					int difference = maxLength - pair.Key.Length + 2;
+					_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
+				}
+			}
+		}
+
+		private string ProgramName()
+		{
+			return new AssemblyName(Assembly.GetEntryAssembly().FullName).Name;
+		}
+
+		private void PrintUsage()
+		{
+			if (IsMulticommand)
+			{
+				_messenger.Write(
+					String.Format("usage: {0} <subcommand> [args]", ProgramName()));
+				_messenger.Write(
+					String.Format("Type '{0} help <subcommand>' for help on a specific subcommand.", ProgramName()));
+				_messenger.Write(String.Empty);
+				_messenger.Write("Available subcommands:");
+				foreach (MethodInfo method in _actionMethods)
+				{
+					object[] actionAttributes = method.GetCustomAttributes(typeof(ActionAttribute), false);
+					ActionAttribute action = actionAttributes[0] as ActionAttribute;
+					_messenger.Write(method.Name.ToLower());
+				}
+			}
+			else
+			{
+				PrintUsage(_actionMethods[0]);
 			}
 		}
 
@@ -305,10 +356,35 @@ namespace NConsoler
 					(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
 				if (parameter.ParameterType != typeof(bool))
 				{
-					parameterName += ":" + parameter.Name;
+					parameterName += ":" + ValueDescription(parameter.ParameterType);
 				}
 				return "[/" + parameterName + "]";
 			}
+		}
+
+		private string ValueDescription(Type type)
+		{
+			if (type == typeof(int))
+			{
+				return "number";
+			}
+			if (type == typeof(string))
+			{
+				return "value";
+			}
+			if (type == typeof(int[]))
+			{
+				return "number[+number]";
+			}
+			if (type == typeof(string[]))
+			{
+				return "value[+value]";
+			}
+			if (type == typeof(DateTime))
+			{
+				return "dd-mm-yyyy";
+			}
+			throw new ArgumentOutOfRangeException(String.Format("Type {0} is unknown", type.Name));
 		}
 
 		#region Validation
@@ -420,7 +496,7 @@ namespace NConsoler
 		{
 			if (_actionMethods.Count == 0)
 			{
-				throw new NConsolerException("Can not find any public static method in type \"{0}\" marked with [Action] attribute", _targetType.Name);
+				throw new NConsolerException("Can not find any public static method marked with [Action] attribute in type \"{0}\" ", _targetType.Name);
 			}
 		}
 
@@ -431,7 +507,7 @@ namespace NConsoler
 				object[] attributes = parameter.GetCustomAttributes(typeof(ParameterAttribute), false);
 				if (attributes.Length > 1)
 				{
-					throw new NConsolerException("More than one attribute is applied to parameter \"{0}\" in method \"{1}\"", parameter.Name, method.Name);
+					throw new NConsolerException("More than one attribute is applied to the parameter \"{0}\" in the method \"{1}\"", parameter.Name, method.Name);
 				}
 			}
 		}
