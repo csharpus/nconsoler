@@ -95,6 +95,12 @@ namespace NConsoler
 
 		}
 
+		//private string[] SplitArrayParameter(string value)
+		//{
+		//    string preparedString = value.Replace("\"", "\"\"");
+		//    "\""
+		//}
+
 		object ConvertValue(string value, Type argumentType)
 		{
 			if (argumentType == typeof(int))
