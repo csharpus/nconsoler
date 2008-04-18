@@ -2,11 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace NConsoler
 {
 	public sealed class Consolery
 	{
+		public static void Run()
+		{	
+			Type declaringType = new StackTrace().GetFrame(1).GetMethod().DeclaringType;
+			string[] args = new string[Environment.GetCommandLineArgs().Length - 1];
+			new List<string>(Environment.GetCommandLineArgs()).CopyTo(1, args, 0, Environment.GetCommandLineArgs().Length - 1);
+			Run(declaringType, args);
+		}
+
 		public static void Run(Type targetType, string[] args)
 		{
 			Run(targetType, args, new ConsoleMessenger());
@@ -16,7 +25,7 @@ namespace NConsoler
 		{
 			try
 			{
-				new Consolery(targetType, args, messenger).Run();
+				new Consolery(targetType, args, messenger).RunAction();
 			}
 			catch (NConsolerException e)
 			{
@@ -183,7 +192,7 @@ namespace NConsoler
 			}
 		}
 
-		private void Run()
+		private void RunAction()
 		{
 			ValidateMetadata();
 			if (_args.Length == 0 || _args[0] == "/?" || _args[0] == "/help" || _args[0] == "/h")
@@ -191,7 +200,9 @@ namespace NConsoler
 				PrintUsage();
 				return;
 			}
+			
 			MethodInfo currentMethod = GetCurrentMethod();
+			
 			ValidateInput(currentMethod);
 			currentMethod.Invoke(null, BuildParameterArray(currentMethod));
 		}
