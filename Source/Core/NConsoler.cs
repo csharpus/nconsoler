@@ -180,7 +180,7 @@ namespace NConsoler
 		private void RunAction()
 		{
 			ValidateMetadata();
-			if (_args.Length == 0 || _args[0] == "/?" || _args[0] == "/help" || _args[0] == "/h")
+			if (IsHelpRequested())
 			{
 				PrintUsage();
 				return;
@@ -189,12 +189,21 @@ namespace NConsoler
 			MethodInfo currentMethod = GetCurrentMethod();
 			
 			ValidateInput(currentMethod);
-			currentMethod.Invoke(null, BuildParameterArray(currentMethod));
+			InvokeMethod(currentMethod);
+		}
+
+		private bool IsHelpRequested()
+		{
+			return _args.Length == 0 || _args[0] == "/?" || _args[0] == "/help" || _args[0] == "/h";
+		}
+
+		private void InvokeMethod(MethodInfo method)
+		{
+			method.Invoke(null, BuildParameterArray(method));
 		}
 
 		private object[] BuildParameterArray(MethodInfo method)
 		{
-#warning check option parameter
 			int argumentIndex = IsMultipleActions() ? 1 : 0;
 			List<object> parameterValues = new List<object>();
 			Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
@@ -219,14 +228,26 @@ namespace NConsoler
 				}
 				argumentIndex++;
 			}
-			int firstOptionalParameterIndex = RequiredParameterCount(method) + (IsMultipleActions() ? 1 : 0);
-			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
-				string name = ParameterName(_args[i]);
-				string value = ParameterValue(_args[i]);
+				string name = ParameterName(optionalParameter);
+				string value = ParameterValue(optionalParameter);
 				parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
 			}
 			return parameterValues.ToArray();
+		}
+
+		private IEnumerable<string> OptionalParameters(MethodInfo method)
+		{
+			int firstOptionalParameterIndex = RequiredParameterCount(method);
+			if (IsMultipleActions())
+			{
+				firstOptionalParameterIndex++;
+			}
+			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
+			{
+				yield return _args[i];
+			}
 		}
 
 		private static int RequiredParameterCount(MethodInfo method)
@@ -437,18 +458,13 @@ namespace NConsoler
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
 		{
 			List<string> passedParameters = new List<string>();
-			int firstOptionalParamterIndex = RequiredParameterCount(method);
-			if (IsMultipleActions())
+			foreach(string optionalParameter in OptionalParameters(method))
 			{
-				firstOptionalParamterIndex++;
-			}
-			for (int i = firstOptionalParamterIndex; i < _args.Length; i++)
-			{
-				if (!_args[i].StartsWith("/"))
+				if (!optionalParameter.StartsWith("/"))
 				{
-					throw new NConsolerException("Unknown parameter {0}", _args[i]);
+					throw new NConsolerException("Unknown parameter {0}", optionalParameter);
 				}
-				string name = ParameterName(_args[i]);
+				string name = ParameterName(optionalParameter);
 				if (passedParameters.Contains(name))
 				{
 					throw new NConsolerException("Parameter with name {0} passed two times", name);
@@ -473,13 +489,12 @@ namespace NConsoler
 					parameterNames.Add(altName);
 				}
 			}
-			int firstOptionalParameterIndex = RequiredParameterCount(method) + (IsMultipleActions() ? 1 : 0);
-			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
+			foreach(string optionalParameter in OptionalParameters(method))
 			{
-				string name = ParameterName(_args[i]);
+				string name = ParameterName(optionalParameter);
 				if (!parameterNames.Contains(name))
 				{
-					throw new NConsolerException("Unknown parameter name {0}", _args[i]);
+					throw new NConsolerException("Unknown parameter name {0}", optionalParameter);
 				}
 			}
 		}
@@ -487,6 +502,7 @@ namespace NConsoler
 		private void ValidateMetadata()
 		{
 			CheckAnyActionMethodExists();
+			IfActionMethodIsSingleCheckMethodHasParameters();
 			foreach (MethodInfo method in _actionMethods)
 			{
 				CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(method);
@@ -501,6 +517,14 @@ namespace NConsoler
 			if (_actionMethods.Count == 0)
 			{
 				throw new NConsolerException("Can not find any public static method marked with [Action] attribute in type \"{0}\"", _targetType.Name);
+			}
+		}
+
+		private void IfActionMethodIsSingleCheckMethodHasParameters()
+		{
+			if (_actionMethods.Count == 1 && _actionMethods[0].GetParameters().Length == 0)
+			{
+				throw new NConsolerException("[Action] attribute applied once to the method \"{0}\" without parameters. In this case NConsoler should not be used", _actionMethods[0].Name);
 			}
 		}
 
@@ -685,6 +709,15 @@ namespace NConsoler
 
 	public sealed class NConsolerException : Exception
 	{
+		public NConsolerException() : base()
+		{
+		}
+
+		public NConsolerException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
+
 		public NConsolerException(string message, params string[] arguments)
 			: base(String.Format(message, arguments))
 		{
