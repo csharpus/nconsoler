@@ -71,32 +71,6 @@ namespace NConsoler
 			}
 		}
 
-		private static bool IsRequired(ICustomAttributeProvider info)
-		{
-			object[] attributes = info.GetCustomAttributes(typeof(ParameterAttribute), false);
-			return attributes.Length == 0 || attributes[0].GetType() == typeof(RequiredAttribute);
-		}
-
-		private static bool IsOptional(ICustomAttributeProvider info)
-		{
-			return !IsRequired(info);
-		}
-
-		private static OptionalAttribute GetOptional(ICustomAttributeProvider info)
-		{
-			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
-			return attributes[0] as OptionalAttribute;
-		}
-
-		private bool IsMulticommand
-		{
-			get
-			{
-				return _actionMethods.Count > 1;
-			}
-
-		}
-
 		static object ConvertValue(string value, Type argumentType)
 		{
 			if (argumentType == typeof(int))
@@ -165,18 +139,6 @@ namespace NConsoler
 			throw new NConsolerException("Unknown type is used in your method {0}", argumentType.FullName);
 		}
 
-		private struct ParameterData
-		{
-			public readonly int position;
-			public readonly Type type;
-
-			public ParameterData(int position, Type type)
-			{
-				this.position = position;
-				this.type = type;
-			}
-		}
-
 		private void RunAction()
 		{
 			ValidateMetadata();
@@ -190,6 +152,44 @@ namespace NConsoler
 			
 			ValidateInput(currentMethod);
 			InvokeMethod(currentMethod);
+		}
+
+		private struct ParameterData
+		{
+			public readonly int position;
+			public readonly Type type;
+
+			public ParameterData(int position, Type type)
+			{
+				this.position = position;
+				this.type = type;
+			}
+		}
+
+		private static bool IsRequired(ICustomAttributeProvider info)
+		{
+			object[] attributes = info.GetCustomAttributes(typeof(ParameterAttribute), false);
+			return attributes.Length == 0 || attributes[0].GetType() == typeof(RequiredAttribute);
+		}
+
+		private static bool IsOptional(ICustomAttributeProvider info)
+		{
+			return !IsRequired(info);
+		}
+
+		private static OptionalAttribute GetOptional(ICustomAttributeProvider info)
+		{
+			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
+			return attributes[0] as OptionalAttribute;
+		}
+
+		private bool IsMulticommand
+		{
+			get
+			{
+				return _actionMethods.Count > 1;
+			}
+
 		}
 
 		private bool IsHelpRequested()
@@ -287,8 +287,13 @@ namespace NConsoler
 		private void PrintUsage(MethodInfo method)
 		{
 			Dictionary<string, string> parameters = GetParametersDescriptions(method);
+			PrintUsageExample(parameters);
+			PrintParametersDescriptions(parameters);
+		}
+
+		private void PrintUsageExample(Dictionary<string, string> parameters)
+		{
 			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
-			PrintParameterDescriptions(parameters);
 		}
 
 		private Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
@@ -312,7 +317,7 @@ namespace NConsoler
 			return parameters;
 		}
 
-		private void PrintParameterDescriptions(Dictionary<string, string> parameters)
+		private void PrintParametersDescriptions(Dictionary<string, string> parameters)
 		{
 			int maxParameterNameLength = MaxKeyLength(parameters);
 			foreach (KeyValuePair<string, string> pair in parameters)
