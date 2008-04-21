@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 using System.Diagnostics;
 
@@ -33,10 +32,10 @@ namespace NConsoler
 			}
 		}
 
-		private Type _targetType;
-		private string[] _args;
-		private List<MethodInfo> _actionMethods = new List<MethodInfo>();
-		private IMessenger _messenger;
+		private readonly Type _targetType;
+		private readonly string[] _args;
+		private readonly List<MethodInfo> _actionMethods = new List<MethodInfo>();
+		private readonly IMessenger _messenger;
 
 		private Consolery(Type targetType, string[] args, IMessenger messenger)
 		{
@@ -72,24 +71,18 @@ namespace NConsoler
 			}
 		}
 
-		private bool IsRequired(ParameterInfo info)
+		private static bool IsRequired(ICustomAttributeProvider info)
 		{
 			object[] attributes = info.GetCustomAttributes(typeof(ParameterAttribute), false);
 			return attributes.Length == 0 || attributes[0].GetType() == typeof(RequiredAttribute);
 		}
 
-		private RequiredAttribute GetRequired(ParameterInfo info)
-		{
-			object[] attributes = info.GetCustomAttributes(typeof(RequiredAttribute), false);
-			return attributes[0] as RequiredAttribute;
-		}
-
-		private bool IsOptional(ParameterInfo info)
+		private static bool IsOptional(ICustomAttributeProvider info)
 		{
 			return !IsRequired(info);
 		}
 
-		private OptionalAttribute GetOptional(ParameterInfo info)
+		private static OptionalAttribute GetOptional(ICustomAttributeProvider info)
 		{
 			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
 			return attributes[0] as OptionalAttribute;
@@ -104,13 +97,7 @@ namespace NConsoler
 
 		}
 
-		//private string[] SplitArrayParameter(string value)
-		//{
-		//    string preparedString = value.Replace("\"", "\"\"");
-		//    "\""
-		//}
-
-		object ConvertValue(string value, Type argumentType)
+		static object ConvertValue(string value, Type argumentType)
 		{
 			if (argumentType == typeof(int))
 			{
@@ -180,15 +167,13 @@ namespace NConsoler
 
 		private struct ParameterData
 		{
-			public string primaryName;
-			public int position;
-			public Type type;
+			public readonly int position;
+			public readonly Type type;
 
-			public ParameterData(int position, Type type, string primaryName)
+			public ParameterData(int position, Type type)
 			{
 				this.position = position;
 				this.type = type;
-				this.primaryName = primaryName;
 			}
 		}
 
@@ -210,7 +195,7 @@ namespace NConsoler
 		private object[] BuildParameterArray(MethodInfo method)
 		{
 #warning check option parameter
-			int argumentIndex = 0;
+			int argumentIndex = IsMultipleActions() ? 1 : 0;
 			List<object> parameterValues = new List<object>();
 			Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
 			foreach (ParameterInfo info in method.GetParameters())
@@ -226,16 +211,16 @@ namespace NConsoler
 					foreach (string altName in optional.AltNames)
 					{
 						aliases.Add(altName,
-							new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
+							new ParameterData(parameterValues.Count, info.ParameterType));
 					}
 					aliases.Add(info.Name,
-						new ParameterData(parameterValues.Count, info.ParameterType, info.Name));
+						new ParameterData(parameterValues.Count, info.ParameterType));
 					parameterValues.Add(optional.Default);
 				}
 				argumentIndex++;
 			}
-			Dictionary<string, string> values = new Dictionary<string, string>();
-			for (int i = RequiredParameterCount(method); i < _args.Length; i++)
+			int firstOptionalParameterIndex = RequiredParameterCount(method) + (IsMultipleActions() ? 1 : 0);
+			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
 			{
 				string name = ParameterName(_args[i]);
 				string value = ParameterValue(_args[i]);
@@ -244,9 +229,9 @@ namespace NConsoler
 			return parameterValues.ToArray();
 		}
 
-		private int RequiredParameterCount(MethodInfo method)
+		private static int RequiredParameterCount(MethodInfo method)
 		{
-			int requiredParameterCount = IsMulticommand ? 1 : 0;
+			int requiredParameterCount = 0;
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
 				if (IsRequired(parameter))
@@ -257,9 +242,14 @@ namespace NConsoler
 			return requiredParameterCount;
 		}
 
+		private bool IsMultipleActions()
+		{
+			return _actionMethods.Count > 1;
+		}
+
 		private MethodInfo GetCurrentMethod()
 		{
-			if (_actionMethods.Count == 1)
+			if (!IsMultipleActions())
 			{
 				return _actionMethods[0];
 			}
@@ -280,18 +270,6 @@ namespace NConsoler
 				}
 				PrintUsage();
 				throw new NConsolerException("Unknown option {0}, print usage", _args[0]);
-			}
-		}
-
-		private void PrintUsage(string subcommand)
-		{
-			foreach (MethodInfo method in _actionMethods)
-			{
-				if (subcommand.ToLower() == method.Name.ToLower())
-				{
-					PrintUsage(method);
-					break;
-				}
 			}
 		}
 
@@ -332,7 +310,7 @@ namespace NConsoler
 			}
 		}
 
-		private string ProgramName()
+		private static string ProgramName()
 		{
 			return new AssemblyName(Assembly.GetEntryAssembly().FullName).Name;
 		}
@@ -349,8 +327,6 @@ namespace NConsoler
 				_messenger.Write("Available subcommands:");
 				foreach (MethodInfo method in _actionMethods)
 				{
-					object[] actionAttributes = method.GetCustomAttributes(typeof(ActionAttribute), false);
-					ActionAttribute action = actionAttributes[0] as ActionAttribute;
 					_messenger.Write(method.Name.ToLower());
 				}
 			}
@@ -360,7 +336,7 @@ namespace NConsoler
 			}
 		}
 
-		private string GetDisplayName(ParameterInfo parameter)
+		private static string GetDisplayName(ParameterInfo parameter)
 		{
 			if (IsRequired(parameter))
 			{
@@ -379,7 +355,7 @@ namespace NConsoler
 			}
 		}
 
-		private string ValueDescription(Type type)
+		private static string ValueDescription(Type type)
 		{
 			if (type == typeof(int))
 			{
@@ -415,13 +391,18 @@ namespace NConsoler
 
 		private void CheckAllRequiredParametersAreSet(MethodInfo method)
 		{
-			if (_args.Length < RequiredParameterCount(method))
+			int minimumArgsLengh = RequiredParameterCount(method);
+			if (IsMultipleActions())
+			{
+				minimumArgsLengh++;
+			}
+			if (_args.Length < minimumArgsLengh)
 			{
 				throw new NConsolerException("Not all required parameters are set");
 			}
 		}
 
-		private string ParameterName(string parameter)
+		private static string ParameterName(string parameter)
 		{
 			if (parameter.StartsWith("/-"))
 			{
@@ -437,7 +418,7 @@ namespace NConsoler
 			}
 		}
 
-		private string ParameterValue(string parameter)
+		private static string ParameterValue(string parameter)
 		{
 			if (parameter.StartsWith("/-"))
 			{
@@ -456,7 +437,12 @@ namespace NConsoler
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
 		{
 			List<string> passedParameters = new List<string>();
-			for (int i = RequiredParameterCount(method); i < _args.Length; i++)
+			int firstOptionalParamterIndex = RequiredParameterCount(method);
+			if (IsMultipleActions())
+			{
+				firstOptionalParamterIndex++;
+			}
+			for (int i = firstOptionalParamterIndex; i < _args.Length; i++)
 			{
 				if (!_args[i].StartsWith("/"))
 				{
@@ -487,7 +473,8 @@ namespace NConsoler
 					parameterNames.Add(altName);
 				}
 			}
-			for (int i = RequiredParameterCount(method); i < _args.Length; i++)
+			int firstOptionalParameterIndex = RequiredParameterCount(method) + (IsMultipleActions() ? 1 : 0);
+			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
 			{
 				string name = ParameterName(_args[i]);
 				if (!parameterNames.Contains(name))
@@ -513,11 +500,11 @@ namespace NConsoler
 		{
 			if (_actionMethods.Count == 0)
 			{
-				throw new NConsolerException("Can not find any public static method marked with [Action] attribute in type \"{0}\" ", _targetType.Name);
+				throw new NConsolerException("Can not find any public static method marked with [Action] attribute in type \"{0}\"", _targetType.Name);
 			}
 		}
 
-		private void CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(MethodInfo method)
+		private static void CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(MethodBase method)
 		{
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
@@ -529,7 +516,7 @@ namespace NConsoler
 			}
 		}
 
-		private void CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(MethodInfo method)
+		private static void CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(MethodBase method)
 		{
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
@@ -545,7 +532,7 @@ namespace NConsoler
 			}
 		}
 
-		private void CheckOptionalParametersAreAfterRequiredOnes(MethodInfo method)
+		private static void CheckOptionalParametersAreAfterRequiredOnes(MethodBase method)
 		{
 			bool optionalFound = false;
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -561,7 +548,7 @@ namespace NConsoler
 			}
 		}
 
-		private void CheckOptionalParametersAltNamesAreNotDuplicated(MethodInfo method)
+		private static void CheckOptionalParametersAltNamesAreNotDuplicated(MethodBase method)
 		{
 			List<string> parameterNames = new List<string>();
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -652,11 +639,8 @@ namespace NConsoler
 			}
 		}
 
-		private bool _isRequired;
-
-		protected ParameterAttribute(bool isRequired)
+		protected ParameterAttribute()
 		{
-			_isRequired = isRequired;
 		}
 	}
 
@@ -677,7 +661,7 @@ namespace NConsoler
 			}
 		}
 
-		private object _defaultValue;
+		private readonly object _defaultValue;
 
 		public object Default
 		{
@@ -688,7 +672,6 @@ namespace NConsoler
 		}
 
 		public OptionalAttribute(object defaultValue, params string[] altNames)
-			: base(false)
 		{
 			_defaultValue = defaultValue;
 			_altNames = altNames;
@@ -697,11 +680,7 @@ namespace NConsoler
 
 	public sealed class RequiredAttribute : ParameterAttribute
 	{
-		public RequiredAttribute()
-			: base(true)
-		{
-
-		}
+		
 	}
 
 	public sealed class NConsolerException : Exception
