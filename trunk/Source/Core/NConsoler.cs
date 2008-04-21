@@ -204,7 +204,7 @@ namespace NConsoler
 
 		private object[] BuildParameterArray(MethodInfo method)
 		{
-			int argumentIndex = IsMultipleActions() ? 1 : 0;
+			int argumentIndex = IsMulticommand ? 1 : 0;
 			List<object> parameterValues = new List<object>();
 			Dictionary<string, ParameterData> aliases = new Dictionary<string, ParameterData>();
 			foreach (ParameterInfo info in method.GetParameters())
@@ -240,7 +240,7 @@ namespace NConsoler
 		private IEnumerable<string> OptionalParameters(MethodInfo method)
 		{
 			int firstOptionalParameterIndex = RequiredParameterCount(method);
-			if (IsMultipleActions())
+			if (IsMulticommand)
 			{
 				firstOptionalParameterIndex++;
 			}
@@ -263,24 +263,14 @@ namespace NConsoler
 			return requiredParameterCount;
 		}
 
-		private bool IsMultipleActions()
-		{
-			return _actionMethods.Count > 1;
-		}
-
 		private MethodInfo GetCurrentMethod()
 		{
-			if (!IsMultipleActions())
+			if (!IsMulticommand)
 			{
 				return _actionMethods[0];
 			}
 			else
 			{
-				if (_args.Length == 0)
-				{
-					PrintUsage();
-					throw new NConsolerException("Error");
-				}
 				string methodName = _args[0].ToLower();
 				foreach (MethodInfo method in _actionMethods)
 				{
@@ -290,11 +280,18 @@ namespace NConsoler
 					}
 				}
 				PrintUsage();
-				throw new NConsolerException("Unknown option {0}, print usage", _args[0]);
+				throw new NConsolerException("Unknown option \"{0}\"", _args[0]);
 			}
 		}
 
 		private void PrintUsage(MethodInfo method)
+		{
+			Dictionary<string, string> parameters = GetParametersDescriptions(method);
+			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+			PrintParameterDescriptions(parameters);
+		}
+
+		private Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
 		{
 			Dictionary<string, string> parameters = new Dictionary<string, string>();
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -312,7 +309,24 @@ namespace NConsoler
 					parameters.Add(parameter.Name, String.Empty);
 				}
 			}
-			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+			return parameters;
+		}
+
+		private void PrintParameterDescriptions(Dictionary<string, string> parameters)
+		{
+			int maxParameterNameLength = MaxKeyLength(parameters);
+			foreach (KeyValuePair<string, string> pair in parameters)
+			{
+				if (pair.Value != String.Empty)
+				{
+					int difference = maxParameterNameLength - pair.Key.Length + 2;
+					_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
+				}
+			}
+		}
+
+		private int MaxKeyLength(Dictionary<string, string> parameters)
+		{
 			int maxLength = 0;
 			foreach (KeyValuePair<string, string> pair in parameters)
 			{
@@ -321,14 +335,7 @@ namespace NConsoler
 					maxLength = pair.Key.Length;
 				}
 			}
-			foreach (KeyValuePair<string, string> pair in parameters)
-			{
-				if (pair.Value != String.Empty)
-				{
-					int difference = maxLength - pair.Key.Length + 2;
-					_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
-				}
-			}
+			return maxLength;
 		}
 
 		private static string ProgramName()
@@ -413,7 +420,7 @@ namespace NConsoler
 		private void CheckAllRequiredParametersAreSet(MethodInfo method)
 		{
 			int minimumArgsLengh = RequiredParameterCount(method);
-			if (IsMultipleActions())
+			if (IsMulticommand)
 			{
 				minimumArgsLengh++;
 			}
