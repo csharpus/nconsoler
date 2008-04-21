@@ -88,7 +88,7 @@ namespace NConsoler.Tests
 		[Test]
 		public void WithoutMethods()
 		{
-			messenger.Write("Can not find any public static method in type \"WithoutMethodsProgram\" marked with [Action] attribute");
+			messenger.Write("Can not find any public static method marked with [Action] attribute in type \"WithoutMethodsProgram\"");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(WithoutMethodsProgram), new string[] { "string" }, messenger);
 		}
@@ -197,7 +197,7 @@ namespace NConsoler.Tests
 		[Test]
 		public void DuplicatedParameterAttributes()
 		{
-			messenger.Write("More than one attribute is applied to parameter \"parameter\" in method \"RunProgram\"");
+			messenger.Write("More than one attribute is applied to the parameter \"parameter\" in the method \"RunProgram\"");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(DuplicatedParameterAttributesProgram),
 				new string[] { "parameter" }, messenger);
@@ -246,6 +246,56 @@ namespace NConsoler.Tests
 			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
 				new string[] { "required", "/unknown" }, messenger);
+		}
+
+		[Test]
+		public void Should_choose_correct_method_if_more_than_one_method()
+		{
+			messenger.Write("m2test");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(TwoActionsProgram),
+				new string[] { "Test2", "test" }, messenger);
+		}
+
+		public class TwoActionsProgram
+		{
+			[Action]
+			public static void Test1(
+				[Required]string parameter)
+			{
+				messenger.Write("m1" + parameter);
+			}
+
+			[Action]
+			public static void Test2(
+				[Required]string parameter)
+			{
+				messenger.Write("m2" + parameter);
+			}
+		}
+
+		[Test]
+		public void Should_work_without_arguments_in_action()
+		{
+			messenger.Write("test");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(WithoutArgumentsProgram),
+				new string[] { "Test" }, messenger);
+		}
+
+		public class WithoutArgumentsProgram
+		{
+			[Action]
+			public static void Test()
+			{
+				messenger.Write("test");
+			}
+
+			[Action]
+			public static void Test1()
+			{
+				messenger.Write("test1");
+			}
 		}
 
 		[TearDown]
