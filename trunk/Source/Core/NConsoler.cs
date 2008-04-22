@@ -199,7 +199,18 @@ namespace NConsoler
 
 		private void InvokeMethod(MethodInfo method)
 		{
-			method.Invoke(null, BuildParameterArray(method));
+			try
+			{
+				method.Invoke(null, BuildParameterArray(method));
+			}
+			catch (TargetInvocationException e)
+			{
+				if (e.InnerException != null)
+				{
+					throw e.InnerException;
+				}
+				throw;
+			}
 		}
 
 		private object[] BuildParameterArray(MethodInfo method)
