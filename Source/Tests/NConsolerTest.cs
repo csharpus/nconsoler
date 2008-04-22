@@ -298,6 +298,23 @@ namespace NConsoler.Tests
 			}
 		}
 
+		[Test]
+		[ExpectedException(typeof(ArgumentException))]
+		public void Should_throw_the_same_exception_as_original_in_action()
+		{
+			mocks.ReplayAll();
+			Consolery.Run(typeof(ThrowExceptionProgram), new string[] {"value"} );
+		}
+
+		public class ThrowExceptionProgram
+		{
+			[Action]
+			public static void Test(string argument)
+			{
+				throw new ArgumentException("Incorrect arguments!");
+			}
+		}
+
 		[TearDown]
 		public void Teardown()
 		{
