@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{A5D2EC7F-5603-4E4E-BACC-0663DF653411}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SiteExamples", "SiteExamples", "{830C64C7-3935-48F4-A8B0-8EE06C48F31F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{830C64C7-3935-48F4-A8B0-8EE06C48F31F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld", "SiteExamples\HelloWorld\HelloWorld.csproj", "{55C300C5-6191-49F6-8994-135BD03ED1F4}"
 EndProject
