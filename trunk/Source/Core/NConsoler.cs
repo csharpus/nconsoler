@@ -298,19 +298,16 @@ namespace NConsoler
 			{
 				return _actionMethods[0];
 			}
-			else
+			string methodName = _args[0].ToLower();
+			foreach (MethodInfo method in _actionMethods)
 			{
-				string methodName = _args[0].ToLower();
-				foreach (MethodInfo method in _actionMethods)
+				if (method.Name.ToLower() == methodName)
 				{
-					if (method.Name.ToLower() == methodName)
-					{
-						return method;
-					}
+					return method;
 				}
-				PrintUsage();
-				throw new NConsolerException("Unknown option \"{0}\"", _args[0]);
 			}
+			PrintUsage();
+			throw new NConsolerException("Unknown option \"{0}\"", _args[0]);
 		}
 
 		private void PrintUsage(MethodInfo method)
@@ -404,17 +401,14 @@ namespace NConsoler
 			{
 				return parameter.Name;
 			}
-			else
+			OptionalAttribute optional = GetOptional(parameter);
+			string parameterName =
+				(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
+			if (parameter.ParameterType != typeof(bool))
 			{
-				OptionalAttribute optional = GetOptional(parameter);
-				string parameterName =
-					(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
-				if (parameter.ParameterType != typeof(bool))
-				{
-					parameterName += ":" + ValueDescription(parameter.ParameterType);
-				}
-				return "[/" + parameterName + "]";
+				parameterName += ":" + ValueDescription(parameter.ParameterType);
 			}
+			return "[/" + parameterName + "]";
 		}
 
 		private static string ValueDescription(Type type)
@@ -470,14 +464,11 @@ namespace NConsoler
 			{
 				return parameter.Substring(2);
 			}
-			else if (parameter.Contains(":"))
+			if (parameter.Contains(":"))
 			{
 				return parameter.Substring(1, parameter.IndexOf(":") - 1);
 			}
-			else
-			{
-				return parameter.Substring(1);
-			}
+			return parameter.Substring(1);
 		}
 
 		private static string ParameterValue(string parameter)
@@ -486,14 +477,11 @@ namespace NConsoler
 			{
 				return "false";
 			}
-			else if (parameter.Contains(":"))
+			if (parameter.Contains(":"))
 			{
 				return parameter.Substring(parameter.IndexOf(":") + 1);
 			}
-			else
-			{
-				return "true";
-			}
+			return "true";
 		}
 
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
