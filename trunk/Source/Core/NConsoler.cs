@@ -5,21 +5,39 @@ using System.Diagnostics;
 
 namespace NConsoler
 {
+	/// <summary>
+	/// Entry point for NConsoler applications
+	/// </summary>
 	public sealed class Consolery
 	{
+		/// <summary>
+		/// Run an appropriate Action method.
+		/// Uses the class this call lives in as target type and command line arguments from Environment
+		/// </summary>
 		public static void Run()
-		{	
+		{
 			Type declaringType = new StackTrace().GetFrame(1).GetMethod().DeclaringType;
 			string[] args = new string[Environment.GetCommandLineArgs().Length - 1];
 			new List<string>(Environment.GetCommandLineArgs()).CopyTo(1, args, 0, Environment.GetCommandLineArgs().Length - 1);
 			Run(declaringType, args);
 		}
 
+		/// <summary>
+		/// Run an appropriate Action method
+		/// </summary>
+		/// <param name="targetType">Type where to search for Action methods</param>
+		/// <param name="args">Arguments that will be converted to Action method arguments</param>
 		public static void Run(Type targetType, string[] args)
 		{
 			Run(targetType, args, new ConsoleMessenger());
 		}
 
+		/// <summary>
+		/// Run an appropriate Action method
+		/// </summary>
+		/// <param name="targetType">Type where to search for Action methods</param>
+		/// <param name="args">Arguments that will be converted to Action method arguments</param>
+		/// <param name="messenger">Uses for writing messages instead of Console class methods</param>
 		public static void Run(Type targetType, string[] args, IMessenger messenger)
 		{
 			try
@@ -131,7 +149,7 @@ namespace NConsoler
 				{
 					return new DateTime(year, month, day);
 				}
-				catch(ArgumentException)
+				catch (ArgumentException)
 				{
 					throw new NConsolerException("Could not convert {0} to Date", value);
 				}
@@ -147,9 +165,9 @@ namespace NConsoler
 				PrintUsage();
 				return;
 			}
-			
+
 			MethodInfo currentMethod = GetCurrentMethod();
-			
+
 			ValidateInput(currentMethod);
 			InvokeMethod(currentMethod);
 		}
@@ -180,7 +198,7 @@ namespace NConsoler
 		private static OptionalAttribute GetOptional(ICustomAttributeProvider info)
 		{
 			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
-			return attributes[0] as OptionalAttribute;
+			return (OptionalAttribute)attributes[0];
 		}
 
 		private bool IsMulticommand
@@ -302,12 +320,12 @@ namespace NConsoler
 			PrintParametersDescriptions(parameters);
 		}
 
-		private void PrintUsageExample(Dictionary<string, string> parameters)
+		private void PrintUsageExample(IDictionary<string, string> parameters)
 		{
 			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
 		}
 
-		private Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
+		private static Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
 		{
 			Dictionary<string, string> parameters = new Dictionary<string, string>();
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -317,7 +335,7 @@ namespace NConsoler
 				if (parameterAttributes.Length > 0)
 				{
 					string name = GetDisplayName(parameter);
-					ParameterAttribute attribute = parameterAttributes[0] as ParameterAttribute;
+					ParameterAttribute attribute = (ParameterAttribute)parameterAttributes[0];
 					parameters.Add(name, attribute.Description);
 				}
 				else
@@ -328,7 +346,7 @@ namespace NConsoler
 			return parameters;
 		}
 
-		private void PrintParametersDescriptions(Dictionary<string, string> parameters)
+		private void PrintParametersDescriptions(IEnumerable<KeyValuePair<string, string>> parameters)
 		{
 			int maxParameterNameLength = MaxKeyLength(parameters);
 			foreach (KeyValuePair<string, string> pair in parameters)
@@ -341,7 +359,7 @@ namespace NConsoler
 			}
 		}
 
-		private int MaxKeyLength(Dictionary<string, string> parameters)
+		private static int MaxKeyLength(IEnumerable<KeyValuePair<string, string>> parameters)
 		{
 			int maxLength = 0;
 			foreach (KeyValuePair<string, string> pair in parameters)
@@ -389,7 +407,7 @@ namespace NConsoler
 			else
 			{
 				OptionalAttribute optional = GetOptional(parameter);
-				string parameterName = 
+				string parameterName =
 					(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
 				if (parameter.ParameterType != typeof(bool))
 				{
@@ -481,7 +499,7 @@ namespace NConsoler
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
 		{
 			List<string> passedParameters = new List<string>();
-			foreach(string optionalParameter in OptionalParameters(method))
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
 				if (!optionalParameter.StartsWith("/"))
 				{
@@ -512,7 +530,7 @@ namespace NConsoler
 					parameterNames.Add(altName);
 				}
 			}
-			foreach(string optionalParameter in OptionalParameters(method))
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
 				string name = ParameterName(optionalParameter);
 				if (!parameterNames.Contains(name))
@@ -627,11 +645,17 @@ namespace NConsoler
 		#endregion
 	}
 
+	/// <summary>
+	/// Used for getting messages from NConsoler
+	/// </summary>
 	public interface IMessenger
 	{
 		void Write(string message);
 	}
 
+	/// <summary>
+	/// Uses Console class for message output
+	/// </summary>
 	public class ConsoleMessenger : IMessenger
 	{
 		public void Write(string message)
@@ -640,6 +664,9 @@ namespace NConsoler
 		}
 	}
 
+	/// <summary>
+	/// Every action method should be marked with this attribute
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 	public sealed class ActionAttribute : Attribute
 	{
@@ -654,6 +681,9 @@ namespace NConsoler
 
 		private string _description = String.Empty;
 
+		/// <summary>
+		/// Description is used for help messages
+		/// </summary>
 		public string Description
 		{
 			get
@@ -668,11 +698,17 @@ namespace NConsoler
 		}
 	}
 
+	/// <summary>
+	/// Should not be used directly
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
 	public class ParameterAttribute : Attribute
 	{
 		private string _description = String.Empty;
 
+		/// <summary>
+		/// Description is used in help message
+		/// </summary>
 		public string Description
 		{
 			get
@@ -691,6 +727,9 @@ namespace NConsoler
 		}
 	}
 
+	/// <summary>
+	/// Marks an Action method parameter as optional
+	/// </summary>
 	public sealed class OptionalAttribute : ParameterAttribute
 	{
 		private string[] _altNames;
@@ -718,6 +757,8 @@ namespace NConsoler
 			}
 		}
 
+		/// <param name="defaultValue">Default value if client doesn't pass this value</param>
+		/// <param name="altNames">Aliases for parameter</param>
 		public OptionalAttribute(object defaultValue, params string[] altNames)
 		{
 			_defaultValue = defaultValue;
@@ -725,14 +766,20 @@ namespace NConsoler
 		}
 	}
 
+	/// <summary>
+	/// Marks an Action method parameter as required
+	/// </summary>
 	public sealed class RequiredAttribute : ParameterAttribute
 	{
-		
+
 	}
 
+	/// <summary>
+	/// Can be used for safe exception throwing - NConsoler will catch the exception
+	/// </summary>
 	public sealed class NConsolerException : Exception
 	{
-		public NConsolerException() : base()
+		public NConsolerException()
 		{
 		}
 
