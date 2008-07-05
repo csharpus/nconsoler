@@ -44,4 +44,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetPath) $(ProjectDir)\..\..\Examples\HelloWorld\$(TargetFileName)
+copy $(TargetPath) $(ProjectDir)\..\..\Examples\Multiplier\$(TargetFileName)
+copy $(TargetPath) $(ProjectDir)\..\..\Examples\Rich\$(TargetFileName)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
