@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NUnit.Framework;
-using Rhino.Mocks;
-
-namespace NConsoler.Tests
+﻿namespace NConsoler.Tests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using NUnit.Framework;
+    using Rhino.Mocks;
+
 	[TestFixture]
 	public class SiteExamples
 	{
