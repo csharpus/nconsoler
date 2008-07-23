@@ -38,5 +38,40 @@
 				Console.WriteLine(message);
 			}
 		}
+
+        [Test]
+        public void ParametersExample()
+        {
+            using (mocks.Record())
+            {
+            }
+            using (mocks.Playback())
+            {
+                Consolery.Run(
+                    typeof (Parameters),
+                    new string[] {"first", "2", @"a+b", "4+5+6", "20-01-2008", "/flag"},
+                    messenger);
+            }
+        }
+
+        class Parameters
+        {
+            [Action]
+            public static void Method(
+                [Required]
+                string p1,
+                [Required]
+                int p2,
+                [Required]
+                string[] p3,
+                [Required]
+                int[] p4,
+                [Required]
+                DateTime p5,
+                [Optional(false)]
+                bool flag)
+            {
+            }
+        }
 	}
 }
