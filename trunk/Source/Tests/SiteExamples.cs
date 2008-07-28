@@ -184,6 +184,8 @@ namespace NConsoler.Tests
 		{
 			using (mocks.Record())
 			{
+				messenger.Write("usage: help flag");
+				messenger.Write("    flag  Applies some magic");
 			}
 			using (mocks.Playback())
 			{

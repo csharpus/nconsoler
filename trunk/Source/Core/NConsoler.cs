@@ -369,9 +369,14 @@ namespace NConsoler
 			return maxLength;
 		}
 
-		private static string ProgramName()
+		private string ProgramName()
 		{
-			return new AssemblyName(Assembly.GetEntryAssembly().FullName).Name;
+			Assembly entryAssembly = Assembly.GetEntryAssembly();
+			if (entryAssembly == null)
+			{
+				return _targetType.Name.ToLower();
+			}
+			return new AssemblyName(entryAssembly.FullName).Name;
 		}
 
 		private void PrintUsage()
