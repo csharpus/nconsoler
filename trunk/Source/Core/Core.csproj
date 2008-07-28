@@ -47,6 +47,7 @@
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetPath) $(ProjectDir)\..\..\Examples\HelloWorld\$(TargetFileName)
 copy $(TargetPath) $(ProjectDir)\..\..\Examples\Multiplier\$(TargetFileName)
-copy $(TargetPath) $(ProjectDir)\..\..\Examples\Rich\$(TargetFileName)</PostBuildEvent>
+copy $(TargetPath) $(ProjectDir)\..\..\Examples\Rich\$(TargetFileName)
+copy $(TargetPath) $(ProjectDir)\..\..\Examples\QuickStart\$(TargetFileName)</PostBuildEvent>
   </PropertyGroup>
 </Project>
