@@ -149,19 +149,10 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
+		[ExpectedException(typeof(NConsolerException))]
 		public void ValidationExample()
 		{
-			using (mocks.Record())
-			{
-				messenger.Write("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"Method\" parameter \"required\"");
-			}
-			using (mocks.Playback())
-			{
-				Consolery.Run(
-					typeof(Validation),
-					new string[] { "add", "Bender" },
-					messenger);
-			} 
+			Consolery.Validate(typeof(Validation));
 		}
 
 		class Validation
