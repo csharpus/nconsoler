@@ -8,7 +8,6 @@ class Program
 		Consolery.Run();
 	}
 
-	// consoler.exe 10 "description" /b
 	[Action("Deletes some objects")]
 	public static void Delete(
 		[Required(Description = "Object count")]

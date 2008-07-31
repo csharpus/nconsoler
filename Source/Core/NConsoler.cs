@@ -11,7 +11,7 @@ namespace NConsoler
 	public sealed class Consolery
 	{
 		/// <summary>
-		/// Run an appropriate Action method.
+		/// Runs an appropriate Action method.
 		/// Uses the class this call lives in as target type and command line arguments from Environment
 		/// </summary>
 		public static void Run()
@@ -23,7 +23,7 @@ namespace NConsoler
 		}
 
 		/// <summary>
-		/// Run an appropriate Action method
+		/// Runs an appropriate Action method
 		/// </summary>
 		/// <param name="targetType">Type where to search for Action methods</param>
 		/// <param name="args">Arguments that will be converted to Action method arguments</param>
@@ -33,7 +33,7 @@ namespace NConsoler
 		}
 
 		/// <summary>
-		/// Run an appropriate Action method
+		/// Runs an appropriate Action method
 		/// </summary>
 		/// <param name="targetType">Type where to search for Action methods</param>
 		/// <param name="args">Arguments that will be converted to Action method arguments</param>
@@ -48,6 +48,15 @@ namespace NConsoler
 			{
 				messenger.Write(e.Message);
 			}
+		}
+
+		/// <summary>
+		/// Validates specified type and throws NConsolerException if an error
+		/// </summary>
+		/// <param name="targetType">Type where to search for Action methods</param>
+		public static void Validate(Type targetType)
+		{
+			new Consolery(targetType, new string[] {}, new ConsoleMessenger()).ValidateMetadata();
 		}
 
 		private readonly Type _targetType;
