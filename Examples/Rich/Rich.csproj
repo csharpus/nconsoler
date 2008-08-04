@@ -7,14 +7,14 @@
     <ProjectGuid>{795BB232-32A4-4F2B-B0A7-589C2E16D463}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NConsoler.Example</RootNamespace>
-    <AssemblyName>NConsoler.Example</AssemblyName>
+    <RootNamespace>Rich</RootNamespace>
+    <AssemblyName>Program</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>.\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
