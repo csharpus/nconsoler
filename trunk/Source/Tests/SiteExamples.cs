@@ -1,9 +1,9 @@
 ﻿// <examples>
 namespace NConsoler.Tests
 {
-    using System;
-    using NUnit.Framework;
-    using Rhino.Mocks;
+	using System;
+	using NUnit.Framework;
+	using Rhino.Mocks;
 
 	[TestFixture]
 	public class SiteExamples
@@ -38,46 +38,46 @@ namespace NConsoler.Tests
 			}
 		}
 
-        [Test]
-        public void ParametersExample()
-        {
-            using (mocks.Record())
-            {
-            }
-            using (mocks.Playback())
-            {
-                Consolery.Run(
-                    typeof (Parameters),
-                    new string[] {"first", "2", @"a+b", "4+5+6", "20-01-2008", "/flag"},
-                    messenger);
-            }
-        }
+		[Test]
+		public void ParametersExample()
+		{
+			using (mocks.Record())
+			{
+			}
+			using (mocks.Playback())
+			{
+				Consolery.Run(
+					typeof(Parameters),
+					new string[] { "first", "2", @"a+b", "4+5+6", "20-01-2008", "/flag" },
+					messenger);
+			}
+		}
 
-        class Parameters
-        {
-// <example name="parameters">
-            [Action]
-            public static void Method(
-                [Required]
+		class Parameters
+		{
+			// <example name="parameters">
+			[Action]
+			public static void Method(
+				[Required]
                 string p1,
-                [Required]
+				[Required]
                 int p2,
-                [Required]
+				[Required]
                 string[] p3,
-                [Required]
+				[Required]
                 int[] p4,
-                [Required]
+				[Required]
                 DateTime p5,
-                [Optional(false)]
+				[Optional(false)]
                 bool flag)
-// </example>
-            {
-            }
-        }
+			// </example>
+			{
+			}
+		}
 
-        [Test]
-        public void CheatSheetExamples()
-        {
+		[Test]
+		public void CheatSheetExamples()
+		{
 			using (mocks.Record())
 			{
 			}
@@ -87,26 +87,27 @@ namespace NConsoler.Tests
 					typeof(CheatSheet),
 					new string[] { "first", "/optional:2", @"/value:3" },
 					messenger);
-			} 
-        }
+			}
+		}
 
-        class CheatSheet {
-// <example name="action_method_cheath_sheet">
+		class CheatSheet
+		{
+			// <example name="action_method_cheath_sheet">
 			[Action]
 			public static void Method(
-// </example>
-// <example name="required_parameter_cheath_sheet">
+				// </example>
+				// <example name="required_parameter_cheath_sheet">
 				[Required(Description = "Parameter name")]
 				string name,
-// </example>
-// <example name="optional_parameter_cheath_sheet">
+				// </example>
+				// <example name="optional_parameter_cheath_sheet">
 				[Optional("Parameter name")]
 				string optional,
-// </example>
-// <example name="alias_cheath_sheet">
+				// </example>
+				// <example name="alias_cheath_sheet">
 				[Optional("Default value", "anAlias")]
 				string value
-// </example>
+				// </example>
 			)
 			{
 			}
@@ -124,12 +125,12 @@ namespace NConsoler.Tests
 					typeof(MultipleExamples),
 					new string[] { "add", "Bender" },
 					messenger);
-			} 
+			}
 		}
 
 		class MultipleExamples
 		{
-// <example name="multiple_actions">
+			// <example name="multiple_actions">
 			[Action]
 			public static void Add(
 				[Required]
@@ -145,7 +146,7 @@ namespace NConsoler.Tests
 			{
 
 			}
-// </example>
+			// </example>
 		}
 
 		[Test]
@@ -157,16 +158,16 @@ namespace NConsoler.Tests
 
 		class Validation
 		{
-// <example name="validation">
+			// <example name="validation">
 			[Action]
 			public static void Method(
 				[Optional("default")]
 				string optional,
 				[Required]
 				string required)
-// </example>
+			// </example>
 			{
-				
+
 			}
 		}
 
@@ -184,19 +185,19 @@ namespace NConsoler.Tests
 					typeof(Help),
 					new string[] { },
 					messenger);
-			} 
+			}
 		}
 
 		class Help
 		{
-// <example name="help">
+			// <example name="help">
 			[Action]
 			public static void Method(
 				[Required(Description = "Applies some magic")]
 				string flag)
-// </example>
+			// </example>
 			{
-				
+
 			}
 
 		}

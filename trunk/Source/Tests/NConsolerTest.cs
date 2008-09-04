@@ -257,6 +257,15 @@ namespace NConsoler.Tests
 				new string[] { "Test2", "test" }, messenger);
 		}
 
+		[Test]
+		public void Should_show_help_for_a_particular_message()
+		{
+			messenger.Write("usage: twoactionsprogram test2 parameter");
+			//messenger.Write("   parameter");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(TwoActionsProgram), new string[] { "help", "Test2" }, messenger);
+		}
+
 		public class TwoActionsProgram
 		{
 			[Action]
@@ -299,11 +308,11 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		[ExpectedException(typeof(ArgumentException))]
-		public void Should_throw_the_same_exception_as_original_in_action()
+		public void Should_write_exeption_message()
 		{
+			messenger.Write("Incorrect arguments!");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ThrowExceptionProgram), new string[] {"value"} );
+			Consolery.Run(typeof(ThrowExceptionProgram), new string[] {"value"}, messenger);
 		}
 
 		public class ThrowExceptionProgram
