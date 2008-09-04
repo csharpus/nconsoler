@@ -261,7 +261,6 @@ namespace NConsoler.Tests
 		public void Should_show_help_for_a_particular_message()
 		{
 			messenger.Write("usage: twoactionsprogram test2 parameter");
-			//messenger.Write("   parameter");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(TwoActionsProgram), new string[] { "help", "Test2" }, messenger);
 		}
