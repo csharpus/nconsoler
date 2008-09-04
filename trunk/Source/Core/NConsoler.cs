@@ -234,7 +234,7 @@ namespace NConsoler
 			{
 				if (e.InnerException != null)
 				{
-					throw e.InnerException;
+					throw new NConsolerException(e.InnerException.Message, e);
 				}
 				throw;
 			}
