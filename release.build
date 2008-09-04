@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="PokeTest" default="Main" basedir=".">
 
-	<property name="version" value="0.9" />
+	<property name="version" value="0.91" />
 	
 	<target name="Main">
 		
