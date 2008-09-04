@@ -176,7 +176,11 @@ namespace NConsoler
 			}
 
 			MethodInfo currentMethod = GetCurrentMethod();
-
+			if (currentMethod == null)
+			{
+				PrintUsage();
+				throw new NConsolerException("Unknown subcommand \"{0}\"", _args[0]);
+			}
 			ValidateInput(currentMethod);
 			InvokeMethod(currentMethod);
 		}
@@ -221,7 +225,11 @@ namespace NConsoler
 
 		private bool IsHelpRequested()
 		{
-			return _args.Length == 0 || _args[0] == "/?" || _args[0] == "/help" || _args[0] == "/h";
+			return _args.Length == 0 
+				|| _args[0] == "/?" 
+				|| _args[0] == "/help" 
+				|| _args[0] == "/h"
+				|| _args[0] == "help";
 		}
 
 		private void InvokeMethod(MethodInfo method)
@@ -307,28 +315,54 @@ namespace NConsoler
 			{
 				return _actionMethods[0];
 			}
-			string methodName = _args[0].ToLower();
+			return GetMethodByName(_args[0].ToLower());
+		}
+
+		private MethodInfo GetMethodByName(string name)
+		{
 			foreach (MethodInfo method in _actionMethods)
 			{
-				if (method.Name.ToLower() == methodName)
+				if (method.Name.ToLower() == name)
 				{
 					return method;
 				}
 			}
-			PrintUsage();
-			throw new NConsolerException("Unknown option \"{0}\"", _args[0]);
+			return null;
 		}
 
 		private void PrintUsage(MethodInfo method)
 		{
+			PrintMethodDescription(method);
 			Dictionary<string, string> parameters = GetParametersDescriptions(method);
-			PrintUsageExample(parameters);
+			PrintUsageExample(method, parameters);
 			PrintParametersDescriptions(parameters);
 		}
 
-		private void PrintUsageExample(IDictionary<string, string> parameters)
+		private void PrintUsageExample(MethodInfo method, IDictionary<string, string> parameterList)
 		{
-			_messenger.Write("usage: " + ProgramName() + " " + String.Join(" ", new List<string>(parameters.Keys).ToArray()));
+			string subcommand = IsMulticommand ? method.Name.ToLower() + " " : String.Empty;
+			string parameters = String.Join(" ", new List<string>(parameterList.Keys).ToArray());
+			_messenger.Write("usage: " + ProgramName() + " " + subcommand + parameters);
+		}
+
+		private void PrintMethodDescription(MethodInfo method)
+		{
+			string description = GetMethodDescription(method);
+			if (description == String.Empty) return;
+			_messenger.Write(description);
+		}
+
+		private static string GetMethodDescription(MethodInfo method)
+		{
+			object[] attributes = method.GetCustomAttributes(true);
+			foreach (object attribute in attributes)
+			{
+				if (attribute is ActionAttribute)
+				{
+					return ((ActionAttribute)attribute).Description;
+				}
+			}
+			throw new NConsolerException("Method is not marked with an Action attribute");
 		}
 
 		private static Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
@@ -390,22 +424,49 @@ namespace NConsoler
 
 		private void PrintUsage()
 		{
-			if (IsMulticommand)
+			if (IsMulticommand && !IsSubcommandHelpRequested())
 			{
-				_messenger.Write(
-					String.Format("usage: {0} <subcommand> [args]", ProgramName()));
-				_messenger.Write(
-					String.Format("Type '{0} help <subcommand>' for help on a specific subcommand.", ProgramName()));
-				_messenger.Write(String.Empty);
-				_messenger.Write("Available subcommands:");
-				foreach (MethodInfo method in _actionMethods)
-				{
-					_messenger.Write(method.Name.ToLower());
-				}
+				PrintGeneralMulticommandUsage();
+			}
+			else if (IsMulticommand && IsSubcommandHelpRequested())
+			{
+				PrintSubcommandUsage();
 			}
 			else
 			{
 				PrintUsage(_actionMethods[0]);
+			}
+		}
+
+		private void PrintSubcommandUsage()
+		{
+			MethodInfo method = GetMethodByName(_args[1].ToLower());
+			if (method == null)
+			{
+				PrintGeneralMulticommandUsage();
+				throw new NConsolerException("Unknown subcommand \"{0}\"", _args[0].ToLower());
+			}
+			PrintUsage(method);
+		}
+
+		private bool IsSubcommandHelpRequested()
+		{
+			return _args.Length > 0
+				&& _args[0].ToLower() == "help"
+				&& _args.Length == 2;
+		}
+
+		private void PrintGeneralMulticommandUsage()
+		{
+			_messenger.Write(
+					String.Format("usage: {0} <subcommand> [args]", ProgramName()));
+			_messenger.Write(
+				String.Format("Type '{0} help <subcommand>' for help on a specific subcommand.", ProgramName()));
+			_messenger.Write(String.Empty);
+			_messenger.Write("Available subcommands:");
+			foreach (MethodInfo method in _actionMethods)
+			{
+				_messenger.Write(method.Name.ToLower() + " " + GetMethodDescription(method));
 			}
 		}
 
