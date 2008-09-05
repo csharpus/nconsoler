@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="PokeTest" default="Main" basedir=".">
 
-	<property name="version" value="0.91" />
+	<property name="version" value="0.9.2" />
 	
 	<target name="Main">
 		
@@ -10,25 +10,8 @@
 		<call target="Build" />
 
 		<call target="Zip_packages" />
-
-		<!--<call target="Create_templates" />
-		
-		<call target="Package_installer" />-->
 		
 	</target>
-
-	<!--<target name="Create_templates">
-		
-		<property name="templateName" value="Migration" />
-		<call target="Create_template" />
-
-		<property name="templateName" value="RhinoMock" />
-		<call target="Create_template" />
-
-		<property name="templateName" value="UnitTest" />
-		<call target="Create_template" />
-		
-	</target>-->
 
 	<property name="product.name" value="NConsoler" />
 	<property name="product.url.file" value="Build/nconsoler.csharpus.com.url" />
@@ -123,33 +106,4 @@
 			</fileset>
 		</zip>
 	</target>
-	<!--<target name="Package_installer">
-		<exec program="7z" workingdir="${output.folder}"
-					commandline="a -t7z archive.7z Assemblies ItemTemplates InstallTemplates.exe" />
-		<exec program="cmd">
-			<arg value="/c" />
-			<arg value="copy" />
-			<arg value ="/b" />
-			<arg line="Build\7zS.sfx + Build\config.txt + ${output.folder}\archive.7z" />
-			<arg value="${output.file}" />
-		</exec>
-	</target>
-
-	<property name="templateName" value="" />-->
-
-	<!--<target name="Create_template">
-		<zip zipfile="${output.folder}/ItemTemplates/${namespace}.${templateName}.zip">
-			<fileset basedir="${templates.folder}">
-				<include name="${templateName}Template.cs" />
-				<include name="${templateName}Template.vstemplate" />
-				<include name="__TemplateIcon.ico" />
-			</fileset>
-		</zip>
-		<property name="wizardName" value="${templateName}TemplateWizard" />
-		<property name="wizardFolder" value="${source.folder}/${wizardName}" />
-		<if test="${directory::exists(wizardFolder)}">
-			<copy file="${wizardFolder}/bin/${build.configuration}/${namespace}.${wizardName}.dll"
-						tofile="${output.folder}/Assemblies/${namespace}.${wizardName}.dll" />
-		</if>
-	</target>-->
 </project>

@@ -1,4 +1,9 @@
-﻿using System;
+﻿//
+// NConsoler 0.9.2
+// http://nconsoler.csharpus.com
+//
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Diagnostics;
