@@ -25,5 +25,10 @@ namespace Bench
 			string message)
 		{
 		}
+
+		[Action]
+		public static void Help()
+		{
+		}
 	}
 }
