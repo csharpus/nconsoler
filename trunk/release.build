@@ -100,6 +100,8 @@
 					todir="${product.output}/Data" />
 		<copy file="${source.folder}/Core/NConsoler.cs"
 					todir="${product.output}/Data" />
+		<copy file="Documentation/releasenotes.txt"
+					todir="${product.output}/Data" />
 		<zip zipfile="${product.name}-${version}.zip">
 			<fileset basedir="${product.output}" prefix="${product.name}-${version}">
 				<include name="**/*" />
