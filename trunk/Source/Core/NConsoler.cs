@@ -609,10 +609,22 @@ namespace NConsoler
 			IfActionMethodIsSingleCheckMethodHasParameters();
 			foreach (MethodInfo method in _actionMethods)
 			{
+				CheckActionMethodNamesAreNotReserved();
 				CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(method);
 				CheckOptionalParametersAreAfterRequiredOnes(method);
 				CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(method);
 				CheckOptionalParametersAltNamesAreNotDuplicated(method);
+			}
+		}
+
+		private void CheckActionMethodNamesAreNotReserved()
+		{
+			foreach (MethodInfo method in _actionMethods)
+			{
+				if (method.Name.ToLower() == "help")
+				{
+					throw new NConsolerException("Method name \"{0}\" is reserved. Please, choose another name", method.Name);
+				}
 			}
 		}
 
