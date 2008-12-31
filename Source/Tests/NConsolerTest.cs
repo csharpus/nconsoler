@@ -323,6 +323,23 @@ namespace NConsoler.Tests
 			}
 		}
 
+		public class OptionalDateTimeProgram
+		{
+			[Action]
+			public static void Test(DateTime required, [Optional("31-12-2008", "dtDate")]DateTime optional)
+			{
+				messenger.Write(optional.ToString("dd-MM-yyyy"));
+			}
+		}
+
+		[Test]
+		public void Should_correctly_convert_to_datetime_from_optional_attribute_default_value()
+		{
+			messenger.Write("31-12-2008");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OptionalDateTimeProgram), new string[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
+		}
+
 		[TearDown]
 		public void Teardown()
 		{
