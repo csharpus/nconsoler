@@ -151,24 +151,42 @@ namespace NConsoler
 			}
 			if (argumentType == typeof(DateTime))
 			{
-				string[] parts = value.Split('-');
-				if (parts.Length != 3)
-				{
-					throw new NConsolerException("Could not convert {0} to Date", value);
-				}
-				int day = (int)ConvertValue(parts[0], typeof(int));
-				int month = (int)ConvertValue(parts[1], typeof(int));
-				int year = (int)ConvertValue(parts[2], typeof(int));
-				try
-				{
-					return new DateTime(year, month, day);
-				}
-				catch (ArgumentException)
-				{
-					throw new NConsolerException("Could not convert {0} to Date", value);
-				}
+				return ConvertToDateTime(value);
 			}
 			throw new NConsolerException("Unknown type is used in your method {0}", argumentType.FullName);
+		}
+
+		private static DateTime ConvertToDateTime(string parameter)
+		{
+			string[] parts = parameter.Split('-');
+			if (parts.Length != 3)
+			{
+				throw new NConsolerException("Could not convert {0} to Date", parameter);
+			}
+			int day = (int)ConvertValue(parts[0], typeof(int));
+			int month = (int)ConvertValue(parts[1], typeof(int));
+			int year = (int)ConvertValue(parts[2], typeof(int));
+			try
+			{
+				return new DateTime(year, month, day);
+			}
+			catch (ArgumentException)
+			{
+				throw new NConsolerException("Could not convert {0} to Date", parameter);
+			}
+		}
+
+		private static bool CanBeConvertedToDate(string parameter)
+		{
+			try
+			{
+				ConvertToDateTime(parameter);
+				return true;
+			}
+			catch(NConsolerException)
+			{
+				return false;
+			}
 		}
 
 		private void RunAction()
@@ -670,6 +688,10 @@ namespace NConsoler
 					continue;
 				}
 				OptionalAttribute optional = GetOptional(parameter);
+				if (optional.Default.GetType() == typeof(string) && CanBeConvertedToDate(optional.Default.ToString()))
+				{
+					return;
+				}
 				if (!optional.Default.GetType().IsAssignableFrom(parameter.ParameterType))
 				{
 					throw new NConsolerException("Default value for an optional parameter \"{0}\" in method \"{1}\" can not be assigned to the parameter", parameter.Name, method.Name);
