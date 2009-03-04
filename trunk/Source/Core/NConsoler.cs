@@ -189,6 +189,25 @@ namespace NConsoler
 			}
 		}
 
+		private bool SingleActionWithOnlyOptionalParametersSpecified() {
+			if (IsMulticommand) return false;
+			MethodInfo method = _actionMethods[0];
+			return OnlyOptionalParametersSpecified(method);
+		}
+
+		private static bool OnlyOptionalParametersSpecified(MethodBase method)
+		{
+			foreach (ParameterInfo parameter in method.GetParameters())
+			{
+				if (IsRequired(parameter))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		
+
 		private void RunAction()
 		{
 			ValidateMetadata();
@@ -243,16 +262,15 @@ namespace NConsoler
 			{
 				return _actionMethods.Count > 1;
 			}
-
 		}
 
 		private bool IsHelpRequested()
 		{
-			return _args.Length == 0 
-				|| _args[0] == "/?" 
+			return (_args.Length == 0 && !SingleActionWithOnlyOptionalParametersSpecified())
+				|| (_args.Length > 0 && (_args[0] == "/?" 
 				|| _args[0] == "/help" 
 				|| _args[0] == "/h"
-				|| _args[0] == "help";
+				|| _args[0] == "help"));
 		}
 
 		private void InvokeMethod(MethodInfo method)

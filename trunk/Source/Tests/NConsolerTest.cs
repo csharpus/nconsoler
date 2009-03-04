@@ -37,6 +37,23 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
+		public void Should_run_program_when_only_optional_parameters_specified()
+		{
+			messenger.Write("True");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OnlyOptionalParametersProgram), new string[] { });
+		}
+
+		public class OnlyOptionalParametersProgram
+		{
+			[Action]
+			public static void RunProgram([Optional(true)]bool parameter)
+			{
+				messenger.Write(parameter.ToString());
+			}
+		}
+
+		[Test]
 		public void ManyParameters()
 		{
 			messenger.Write("string 1 True string 1 True");
