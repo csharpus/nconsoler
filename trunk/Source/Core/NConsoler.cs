@@ -697,6 +697,13 @@ namespace NConsoler
 			}
 		}
 
+		private static bool CanBeNull(Type type)
+		{
+			return type == typeof(string) 
+				|| type == typeof(string[]) 
+				|| type == typeof(int[]);
+		}
+
 		private static void CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(MethodBase method)
 		{
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -706,11 +713,12 @@ namespace NConsoler
 					continue;
 				}
 				OptionalAttribute optional = GetOptional(parameter);
-				if (optional.Default.GetType() == typeof(string) && CanBeConvertedToDate(optional.Default.ToString()))
+				if (optional.Default != null && optional.Default.GetType() == typeof(string) && CanBeConvertedToDate(optional.Default.ToString()))
 				{
 					return;
 				}
-				if (!optional.Default.GetType().IsAssignableFrom(parameter.ParameterType))
+				if ((optional.Default == null && !CanBeNull(parameter.ParameterType))
+					|| (optional.Default != null && !optional.Default.GetType().IsAssignableFrom(parameter.ParameterType)))
 				{
 					throw new NConsolerException("Default value for an optional parameter \"{0}\" in method \"{1}\" can not be assigned to the parameter", parameter.Name, method.Name);
 				}
