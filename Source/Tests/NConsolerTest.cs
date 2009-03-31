@@ -54,6 +54,14 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
+		public void Should_run_program_when_specified_case_for_optional_argument_inconsistent_with_actual_parameters()
+		{
+			messenger.Write("False");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OnlyOptionalParametersProgram), new string[] { "/-PARAMETER" });
+		}
+
+		[Test]
 		public void ManyParameters()
 		{
 			messenger.Write("string 1 True string 1 True");
