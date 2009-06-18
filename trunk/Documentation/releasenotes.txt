@@ -1,3 +1,13 @@
+NConsoleer 1.0
+========================
+
+Bugs Fixed:
+
+	- Provide VS2008 versions of the solution and projects 
+	- Opitional string parm is case sensitive
+	- Default action with all optional parameters doesn't run (help is shown instead)
+	- DateTime Type for Optional Parameter
+
 NConsoler 0.9.2
 ========================
 
