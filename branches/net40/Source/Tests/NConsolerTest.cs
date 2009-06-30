@@ -365,6 +365,23 @@ namespace NConsoler.Tests
 			Consolery.Run(typeof(OptionalDateTimeProgram), new string[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
 		}
 
+		[Test]
+		public void Should_work_with_net40_optional_arguments()
+		{
+			messenger.Write("1 true");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(net40OptionalArgumentsProgram), new string[] { "1" }, messenger);
+		}
+
+		public class net40OptionalArgumentsProgram
+		{
+			[Action]
+			public static void Test(int required, bool optional = true)
+			{
+				messenger.Write(required.ToString() + " " + optional.ToString());
+			}
+		}
+
 		[TearDown]
 		public void Teardown()
 		{
