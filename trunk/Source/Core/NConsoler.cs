@@ -52,6 +52,8 @@ namespace NConsoler
 			catch (NConsolerException e)
 			{
 				messenger.Write(e.Message);
+				const int errorExitCode = 1;
+				Environment.ExitCode = errorExitCode;
 			}
 		}
 

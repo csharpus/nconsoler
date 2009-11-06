@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NConsoler;
 
 namespace Bench
@@ -13,10 +11,16 @@ namespace Bench
 		}
 
 		[Action]
-		public static void M1([Optional(true)] bool param)
+		public static void M1(string a1, string a2)
 		{
-			Console.WriteLine(param.ToString());
+		    Console.WriteLine(a1);
 		}
+
+		//[Action]
+		//public static void M1([Optional(true)] bool param)
+		//{
+		//    Console.WriteLine(param.ToString());
+		//}
 
 		//[Action(Description = "First method")]
 		//public static void Method1(
