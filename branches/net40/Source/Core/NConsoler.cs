@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
 
@@ -92,13 +93,9 @@ namespace NConsoler
 			foreach (MethodInfo method in methods)
 			{
 				object[] attributes = method.GetCustomAttributes(false);
-				foreach (object attribute in attributes)
+				if (attributes.OfType<ActionAttribute>().Any())
 				{
-					if (attribute is ActionAttribute)
-					{
-						_actionMethods.Add(method);
-						break;
-					}
+					_actionMethods.Add(method);
 				}
 			}
 		}
@@ -189,7 +186,8 @@ namespace NConsoler
 			}
 		}
 
-		private bool SingleActionWithOnlyOptionalParametersSpecified() {
+		private bool SingleActionWithOnlyOptionalParametersSpecified() 
+{
 			if (IsMulticommand) return false;
 			MethodInfo method = _actionMethods[0];
 			return OnlyOptionalParametersSpecified(method);
@@ -197,16 +195,8 @@ namespace NConsoler
 
 		private static bool OnlyOptionalParametersSpecified(MethodBase method)
 		{
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				if (IsRequired(parameter))
-				{
-					return false;
-				}
-			}
-			return true;
+			return method.GetParameters().All(parameter => !IsRequired(parameter));
 		}
-		
 
 		private void RunAction()
 		{
@@ -339,15 +329,7 @@ namespace NConsoler
 
 		private static int RequiredParameterCount(MethodInfo method)
 		{
-			int requiredParameterCount = 0;
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				if (IsRequired(parameter))
-				{
-					requiredParameterCount++;
-				}
-			}
-			return requiredParameterCount;
+			return method.GetParameters().Count(IsRequired);
 		}
 
 		private MethodInfo GetCurrentMethod()
@@ -361,14 +343,7 @@ namespace NConsoler
 
 		private MethodInfo GetMethodByName(string name)
 		{
-			foreach (MethodInfo method in _actionMethods)
-			{
-				if (method.Name.ToLower() == name)
-				{
-					return method;
-				}
-			}
-			return null;
+			return _actionMethods.FirstOrDefault(method => method.Name.ToLower() == name);
 		}
 
 		private void PrintUsage(MethodInfo method)
@@ -396,12 +371,9 @@ namespace NConsoler
 		private static string GetMethodDescription(MethodInfo method)
 		{
 			object[] attributes = method.GetCustomAttributes(true);
-			foreach (object attribute in attributes)
+			foreach (ActionAttribute attribute in attributes.OfType<ActionAttribute>())
 			{
-				if (attribute is ActionAttribute)
-				{
-					return ((ActionAttribute)attribute).Description;
-				}
+				return (attribute).Description;
 			}
 			throw new NConsolerException("Method is not marked with an Action attribute");
 		}
