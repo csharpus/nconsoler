@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
@@ -72,23 +73,14 @@ namespace NConsoler
 
 		private Consolery(Type targetType, string[] args, IMessenger messenger)
 		{
-			#region Parameter Validation
-			if (targetType == null)
-			{
-				throw new ArgumentNullException("targetType");
-			}
-			if (args == null)
-			{
-				throw new ArgumentNullException("args");
-			}
-			if (messenger == null)
-			{
-				throw new ArgumentNullException("messenger");
-			}
-			#endregion
+			Contract.Requires<ArgumentNullException>(targetType != null, "targetType");
+			Contract.Requires<ArgumentNullException>(args != null, "args");
+			Contract.Requires<ArgumentNullException>(messenger != null, "messenger");
+
 			_targetType = targetType;
 			_args = args;
 			_messenger = messenger;
+			
 			MethodInfo[] methods = _targetType.GetMethods(BindingFlags.Public | BindingFlags.Static);
 			foreach (MethodInfo method in methods)
 			{
@@ -187,7 +179,7 @@ namespace NConsoler
 		}
 
 		private bool SingleActionWithOnlyOptionalParametersSpecified() 
-{
+		{
 			if (IsMulticommand) return false;
 			MethodInfo method = _actionMethods[0];
 			return OnlyOptionalParametersSpecified(method);
@@ -471,12 +463,11 @@ namespace NConsoler
 
 		private void PrintGeneralMulticommandUsage()
 		{
-			_messenger.Write(
-					String.Format("usage: {0} <subcommand> [args]", ProgramName()));
-			_messenger.Write(
-				String.Format("Type '{0} help <subcommand>' for help on a specific subcommand.", ProgramName()));
+			_messenger.Write(String.Format("usage: {0} <subcommand> [args]", ProgramName()));
+			_messenger.Write(String.Format("Type '{0} help <subcommand>' for help on a specific subcommand.", ProgramName()));
 			_messenger.Write(String.Empty);
 			_messenger.Write("Available subcommands:");
+
 			foreach (MethodInfo method in _actionMethods)
 			{
 				_messenger.Write(method.Name.ToLower() + " " + GetMethodDescription(method));
