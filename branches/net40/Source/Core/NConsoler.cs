@@ -126,7 +126,7 @@ namespace NConsoler
 			if (argumentType == typeof (int[]))
 			{
 				string[] values = value.Split('+');
-				int[] valuesArray = new int[values.Length];
+				var valuesArray = new int[values.Length];
 				for (int i = 0; i < values.Length; i++)
 				{
 					valuesArray[i] = (int) ConvertValue(values[i], typeof (int));
@@ -206,13 +206,13 @@ namespace NConsoler
 
 		private struct ParameterData
 		{
-			public readonly int position;
-			public readonly Type type;
+			public readonly int Position;
+			public readonly Type Type;
 
 			public ParameterData(int position, Type type)
 			{
-				this.position = position;
-				this.type = type;
+				Position = position;
+				Type = type;
 			}
 		}
 
@@ -293,7 +293,7 @@ namespace NConsoler
 			{
 				string name = ParameterName(optionalParameter);
 				string value = ParameterValue(optionalParameter);
-				parameterValues[aliases[name].position] = ConvertValue(value, aliases[name].type);
+				parameterValues[aliases[name].Position] = ConvertValue(value, aliases[name].Type);
 			}
 			return parameterValues.ToArray();
 		}
@@ -731,121 +731,5 @@ namespace NConsoler
 		}
 
 		#endregion
-	}
-
-	/// <summary>
-	/// Used for getting messages from NConsoler
-	/// </summary>
-	public interface IMessenger
-	{
-		void Write(string message);
-	}
-
-	/// <summary>
-	/// Every action method should be marked with this attribute
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-	public sealed class ActionAttribute : Attribute
-	{
-		public ActionAttribute()
-		{
-		}
-
-		public ActionAttribute(string description)
-		{
-			_description = description;
-		}
-
-		private string _description = String.Empty;
-
-		/// <summary>
-		/// Description is used for help messages
-		/// </summary>
-		public string Description
-		{
-			get { return _description; }
-
-			set { _description = value; }
-		}
-	}
-
-	/// <summary>
-	/// Should not be used directly
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-	public class ParameterAttribute : Attribute
-	{
-		private string _description = String.Empty;
-
-		/// <summary>
-		/// Description is used in help message
-		/// </summary>
-		public string Description
-		{
-			get { return _description; }
-
-			set { _description = value; }
-		}
-
-		protected ParameterAttribute()
-		{
-		}
-	}
-
-	/// <summary>
-	/// Marks an Action method parameter as optional
-	/// </summary>
-	public sealed class OptionalAttribute : ParameterAttribute
-	{
-		private string[] _altNames;
-
-		public string[] AltNames
-		{
-			get { return _altNames; }
-
-			set { _altNames = value; }
-		}
-
-		private readonly object _defaultValue;
-
-		public object Default
-		{
-			get { return _defaultValue; }
-		}
-
-		/// <param name="defaultValue">Default value if client doesn't pass this value</param>
-		/// <param name="altNames">Aliases for parameter</param>
-		public OptionalAttribute(object defaultValue, params string[] altNames)
-		{
-			_defaultValue = defaultValue;
-			_altNames = altNames;
-		}
-	}
-
-	/// <summary>
-	/// Marks an Action method parameter as required
-	/// </summary>
-	public sealed class RequiredAttribute : ParameterAttribute
-	{
-	}
-
-	/// <summary>
-	/// Can be used for safe exception throwing - NConsoler will catch the exception
-	/// </summary>
-	public sealed class NConsolerException : Exception
-	{
-		public NConsolerException()
-		{
-		}
-
-		public NConsolerException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
-
-		public NConsolerException(string message, params string[] arguments)
-			: base(String.Format(message, arguments))
-		{
-		}
 	}
 }
