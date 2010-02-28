@@ -387,5 +387,11 @@ namespace NConsoler.Tests
 		{
 			mocks.VerifyAll();
 		}
+
+		[Test]
+		public void validate()
+		{
+			new Consolery(null, null, null);
+		}
 	}
 }

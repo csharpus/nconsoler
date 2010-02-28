@@ -81,6 +81,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleMessenger.cs" />
     <Compile Include="NConsoler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
