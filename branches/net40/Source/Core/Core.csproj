@@ -84,7 +84,7 @@
     <Compile Include="ActionAttribute.cs" />
     <Compile Include="ConsoleMessenger.cs" />
     <Compile Include="IMessenger.cs" />
-    <Compile Include="NConsoler.cs" />
+    <Compile Include="Consolery.cs" />
     <Compile Include="NConsolerException.cs" />
     <Compile Include="OptionalAttribute.cs" />
     <Compile Include="ParameterAttribute.cs" />
