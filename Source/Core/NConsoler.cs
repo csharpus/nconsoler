@@ -1,5 +1,5 @@
 ﻿//
-// NConsoler 0.9.3
+// NConsoler 1.0.0
 // http://nconsoler.csharpus.com
 //
 
