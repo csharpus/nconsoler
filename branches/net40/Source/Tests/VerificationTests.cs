@@ -52,6 +52,8 @@ namespace NConsoler.Tests
 
 		public enum SomeEnum
 		{
+			FirstItem,
+			SecondItem
 		}
 
 		public struct SomeStruct
@@ -73,6 +75,15 @@ namespace NConsoler.Tests
 			var arrayType = typeof (int[]);
 			Assert.That(arrayType.IsArray, Is.True);
 			Assert.That(arrayType.GetElementType(), Is.EqualTo(typeof(int)));
+		}
+
+		[Test]
+		public void should_obtain_information_about_enum_items()
+		{
+			var enumType = typeof (SomeEnum);
+			Assert.That(enumType.IsEnum, Is.True);
+			Assert.That(enumType.GetEnumNames().First(), Is.EqualTo("FirstItem"));
+			Assert.That(Enum.Parse(enumType, "FirstItem"), Is.EqualTo(SomeEnum.FirstItem));
 		}
 	}
 }
