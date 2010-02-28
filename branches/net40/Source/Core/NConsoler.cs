@@ -1,5 +1,5 @@
 ﻿//
-// NConsoler 0.9.3
+// NConsoler 1.1
 // http://nconsoler.csharpus.com
 //
 
@@ -81,13 +81,10 @@ namespace NConsoler
 			_args = args;
 			_messenger = messenger;
 
-			foreach (var method in from method in _targetType.GetMethods(BindingFlags.Public | BindingFlags.Static)
-			                       let attributes = method.GetCustomAttributes(false)
-			                       where attributes.OfType<ActionAttribute>().Any()
-			                       select method)
-			{
-				_actionMethods.Add(method);
-			}
+			_actionMethods = _targetType
+				.GetMethods(BindingFlags.Public | BindingFlags.Static)
+				.Where(method => method.GetCustomAttributes(false).OfType<ActionAttribute>().Any())
+				.ToList();
 		}
 
 		private static object ConvertValue(string value, Type argumentType)
@@ -401,15 +398,7 @@ namespace NConsoler
 
 		private static int MaxKeyLength(IEnumerable<KeyValuePair<string, string>> parameters)
 		{
-			int maxLength = 0;
-			foreach (KeyValuePair<string, string> pair in parameters)
-			{
-				if (pair.Key.Length > maxLength)
-				{
-					maxLength = pair.Key.Length;
-				}
-			}
-			return maxLength;
+			return parameters.Any() ? parameters.Select(p => p.Key).Max(k => k.Length) : 0;
 		}
 
 		private string ProgramName()

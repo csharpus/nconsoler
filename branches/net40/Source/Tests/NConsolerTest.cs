@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Rhino.Mocks;
@@ -391,7 +392,7 @@ namespace NConsoler.Tests
 		[Test]
 		public void validate()
 		{
-			new Consolery(null, null, null);
+			// new Dictionary<string, string>().Select(p => p.Key).Max(k => k.Length);
 		}
 	}
 }
