@@ -388,11 +388,5 @@ namespace NConsoler.Tests
 		{
 			mocks.VerifyAll();
 		}
-
-		[Test]
-		public void validate()
-		{
-			// new Dictionary<string, string>().Select(p => p.Key).Max(k => k.Length);
-		}
 	}
 }
