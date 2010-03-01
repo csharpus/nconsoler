@@ -106,5 +106,12 @@ namespace NConsoler.Tests
 			const long bigValue = (long)Int32.MaxValue + 1;
 			converter.ConvertFrom(bigValue.ToString());
 		}
+
+		[Test]
+		public void type_converter_should_convert_from_enum()
+		{
+			TypeConverter converter = TypeDescriptor.GetConverter(typeof(SomeEnum));
+			Assert.That(converter.ConvertFrom("FirstItem"), Is.EqualTo(SomeEnum.FirstItem));
+		}
 	}
 }
