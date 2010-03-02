@@ -216,13 +216,13 @@ namespace NConsoler
 			}
 		}
 
-		private static bool IsRequired(ICustomAttributeProvider info)
+		private static bool IsRequired(ParameterInfo info)
 		{
 			object[] attributes = info.GetCustomAttributes(typeof (ParameterAttribute), false);
-			return attributes.Length == 0 || attributes[0].GetType() == typeof (RequiredAttribute);
+			return !info.IsOptional && (attributes.Length == 0 || attributes[0].GetType() == typeof (RequiredAttribute));
 		}
 
-		private static bool IsOptional(ICustomAttributeProvider info)
+		private static bool IsOptional(ParameterInfo info)
 		{
 			return !IsRequired(info);
 		}
