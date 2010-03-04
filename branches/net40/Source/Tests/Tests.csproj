@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConverterTests.cs" />
     <Compile Include="NConsolerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SiteExamples.cs" />

@@ -9,6 +9,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace NConsoler
 {
@@ -85,92 +86,6 @@ namespace NConsoler
 				.GetMethods(BindingFlags.Public | BindingFlags.Static)
 				.Where(method => method.GetCustomAttributes(false).OfType<ActionAttribute>().Any())
 				.ToList();
-		}
-
-		private static object ConvertValue(string value, Type argumentType)
-		{
-			if (argumentType == typeof (int))
-			{
-				try
-				{
-					return Convert.ToInt32(value);
-				}
-				catch (FormatException)
-				{
-					throw new NConsolerException("Could not convert \"{0}\" to integer", value);
-				}
-				catch (OverflowException)
-				{
-					throw new NConsolerException("Value \"{0}\" is too big or too small", value);
-				}
-			}
-			if (argumentType == typeof (string))
-			{
-				return value;
-			}
-			if (argumentType == typeof (bool))
-			{
-				try
-				{
-					return Convert.ToBoolean(value);
-				}
-				catch (FormatException)
-				{
-					throw new NConsolerException("Could not convert \"{0}\" to boolean", value);
-				}
-			}
-			if (argumentType == typeof (string[]))
-			{
-				return value.Split('+');
-			}
-			if (argumentType == typeof (int[]))
-			{
-				string[] values = value.Split('+');
-				var valuesArray = new int[values.Length];
-				for (int i = 0; i < values.Length; i++)
-				{
-					valuesArray[i] = (int) ConvertValue(values[i], typeof (int));
-				}
-				return valuesArray;
-			}
-			if (argumentType == typeof (DateTime))
-			{
-				return ConvertToDateTime(value);
-			}
-			throw new NConsolerException("Unknown type is used in your method {0}", argumentType.FullName);
-		}
-
-		private static DateTime ConvertToDateTime(string parameter)
-		{
-			string[] parts = parameter.Split('-');
-			if (parts.Length != 3)
-			{
-				throw new NConsolerException("Could not convert {0} to Date", parameter);
-			}
-			var day = (int) ConvertValue(parts[0], typeof (int));
-			var month = (int) ConvertValue(parts[1], typeof (int));
-			var year = (int) ConvertValue(parts[2], typeof (int));
-			try
-			{
-				return new DateTime(year, month, day);
-			}
-			catch (ArgumentException)
-			{
-				throw new NConsolerException("Could not convert {0} to Date", parameter);
-			}
-		}
-
-		private static bool CanBeConvertedToDate(string parameter)
-		{
-			try
-			{
-				ConvertToDateTime(parameter);
-				return true;
-			}
-			catch (NConsolerException)
-			{
-				return false;
-			}
 		}
 
 		private bool SingleActionWithOnlyOptionalParametersSpecified()
@@ -272,7 +187,7 @@ namespace NConsoler
 			{
 				if (IsRequired(info))
 				{
-					parameterValues.Add(ConvertValue(_args[argumentIndex], info.ParameterType));
+					parameterValues.Add(StringToObject.ConvertValue(_args[argumentIndex], info.ParameterType));
 				}
 				else
 				{
@@ -293,7 +208,7 @@ namespace NConsoler
 			{
 				string name = ParameterName(optionalParameter);
 				string value = ParameterValue(optionalParameter);
-				parameterValues[aliases[name].Position] = ConvertValue(value, aliases[name].Type);
+				parameterValues[aliases[name].Position] = StringToObject.ConvertValue(value, aliases[name].Type);
 			}
 			return parameterValues.ToArray();
 		}
@@ -665,7 +580,7 @@ namespace NConsoler
 				}
 				OptionalAttribute optional = GetOptional(parameter);
 				if (optional.Default != null && optional.Default.GetType() == typeof (string) &&
-				    CanBeConvertedToDate(optional.Default.ToString()))
+				    StringToObject.CanBeConvertedToDate(optional.Default.ToString()))
 				{
 					return;
 				}
