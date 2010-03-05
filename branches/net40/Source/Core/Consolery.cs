@@ -142,10 +142,18 @@ namespace NConsoler
 			return !IsRequired(info);
 		}
 
-		private static OptionalAttribute GetOptional(ICustomAttributeProvider info)
+		private static OptionalData GetOptional(ICustomAttributeProvider info)
 		{
-			object[] attributes = info.GetCustomAttributes(typeof (OptionalAttribute), false);
-			return (OptionalAttribute) attributes[0];
+			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
+			var attribute = (OptionalAttribute)attributes[0];
+			return new OptionalData {AltNames = attribute.AltNames, Default = attribute.Default};
+		}
+
+		public class OptionalData
+		{
+			public string[] AltNames { get; set; }
+
+			public object Default { get; set; }
 		}
 
 		private bool IsMulticommand
@@ -191,7 +199,7 @@ namespace NConsoler
 				}
 				else
 				{
-					OptionalAttribute optional = GetOptional(info);
+					var optional = GetOptional(info);
 
 					foreach (string altName in optional.AltNames)
 					{
@@ -379,7 +387,7 @@ namespace NConsoler
 			{
 				return parameter.Name;
 			}
-			OptionalAttribute optional = GetOptional(parameter);
+			var optional = GetOptional(parameter);
 			string parameterName =
 				(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
 			if (parameter.ParameterType != typeof (bool))
@@ -490,7 +498,7 @@ namespace NConsoler
 					continue;
 				}
 				parameterNames.Add(parameter.Name.ToLower());
-				OptionalAttribute optional = GetOptional(parameter);
+				var optional = GetOptional(parameter);
 				foreach (string altName in optional.AltNames)
 				{
 					parameterNames.Add(altName.ToLower());
@@ -578,7 +586,7 @@ namespace NConsoler
 				{
 					continue;
 				}
-				OptionalAttribute optional = GetOptional(parameter);
+				var optional = GetOptional(parameter);
 				if (optional.Default != null && optional.Default.GetType() == typeof (string) &&
 				    StringToObject.CanBeConvertedToDate(optional.Default.ToString()))
 				{
@@ -630,7 +638,7 @@ namespace NConsoler
 							parameter.Name, method.Name);
 					}
 					parameterNames.Add(parameter.Name.ToLower());
-					OptionalAttribute optional = GetOptional(parameter);
+					var optional = GetOptional(parameter);
 					foreach (string altName in optional.AltNames)
 					{
 						if (parameterNames.Contains(altName.ToLower()))
