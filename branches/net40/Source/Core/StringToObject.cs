@@ -33,24 +33,26 @@ namespace NConsoler
 				return valuesArray;
 			}
 
-			//if (argumentType.IsPrimitive)
-			//{
-			try
+			// The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32,
+			// UInt32, Int64, UInt64, Char, Double, and Single
+			if (argumentType.IsPrimitive || argumentType == typeof(decimal))
 			{
-				var converter = TypeDescriptor.GetConverter(argumentType);
-				return converter.ConvertFromString(value);
+				try
+				{
+					var converter = TypeDescriptor.GetConverter(argumentType);
+					return converter.ConvertFromString(value);
+				}
+				catch (FormatException)
+				{
+					throw new NConsolerException("Could not convert \"{0}\" to {1}", value, argumentType.ToString());
+				}
+				catch (OverflowException)
+				{
+					throw new NConsolerException("Value \"{0}\" is too big or too small", value);
+				}
 			}
-			catch (FormatException)
-			{
-				throw new NConsolerException("Could not convert \"{0}\" to {1}", value, argumentType.ToString());
-			}
-			catch (OverflowException)
-			{
-				throw new NConsolerException("Value \"{0}\" is too big or too small", value);
-			}
-			//}
 
-			//throw new NConsolerException("Unknown type is used in your method: {0}", argumentType.FullName);
+			throw new NConsolerException("Unknown type is used in your method: {0}", argumentType.FullName);
 		}
 
 		private static DateTime ConvertToDateTime(string parameter)

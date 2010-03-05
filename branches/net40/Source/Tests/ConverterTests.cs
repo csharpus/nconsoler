@@ -32,5 +32,20 @@ namespace NConsoler.Tests
 			var result = (double)StringToObject.ConvertValue("11,11", typeof(double));
 			Assert.That(result == 11.11d);
 		}
+
+		[Test]
+		public void TestCharParameter()
+		{
+			var result = (char)StringToObject.ConvertValue("a", typeof(char));
+			Assert.That(result == "a".ToCharArray()[0]);
+		}
+
+
+		[Test]
+		public void TestBooleanParameter()
+		{
+			var result = (bool)StringToObject.ConvertValue("true", typeof(bool));
+			Assert.That(result);
+		}
 	}
 }
