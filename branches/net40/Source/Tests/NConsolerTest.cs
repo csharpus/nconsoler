@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using Rhino.Mocks;
 
@@ -25,7 +22,7 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(OneParameterProgram), new string[] { "parameter" });
+			Consolery.Run(typeof(OneParameterProgram), new[] { "parameter" });
 		}
 
 		public class OneParameterProgram
@@ -59,7 +56,7 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("False");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(OnlyOptionalParametersProgram), new string[] { "/-PARAMETER" });
+			Consolery.Run(typeof(OnlyOptionalParametersProgram), new[] { "/-PARAMETER" });
 		}
 
 		[Test]
@@ -68,7 +65,7 @@ namespace NConsoler.Tests
 			messenger.Write("string 1 True string 1 True");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram), 
-				new string[] { "string", "1", "true", "/os:string", "/oi:1", "/ob" });
+				new[] { "string", "1", "true", "/os:string", "/oi:1", "/ob" });
 		}
 
 		[Test]
@@ -77,7 +74,7 @@ namespace NConsoler.Tests
 			messenger.Write("string 1 True 0 0 False");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram),
-				new string[] { "string", "1", "true" });
+				new[] { "string", "1", "true" });
 		}
 
 		[Test]
@@ -86,7 +83,7 @@ namespace NConsoler.Tests
 			messenger.Write("string 1 True 0 0 False");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram),
-				new string[] { "string", "1", "true", "/-ob" });
+				new[] { "string", "1", "true", "/-ob" });
 		}
 
 		public class ManyParametersProgram
@@ -116,7 +113,7 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("Can not find any public static method marked with [Action] attribute in type \"WithoutMethodsProgram\"");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(WithoutMethodsProgram), new string[] { "string" }, messenger);
+			Consolery.Run(typeof(WithoutMethodsProgram), new[] { "string" }, messenger);
 		}
 
 		public class WithoutMethodsProgram
@@ -129,7 +126,7 @@ namespace NConsoler.Tests
 			messenger.Write("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"RunProgram\" parameter \"requiredParameter\"");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(WrongParameterOrderProgram), 
-				new string[] { "string" }, messenger);
+				new[] { "string" }, messenger);
 		}
 
 		public class WrongParameterOrderProgram
@@ -226,7 +223,7 @@ namespace NConsoler.Tests
 			messenger.Write("More than one attribute is applied to the parameter \"parameter\" in the method \"RunProgram\"");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(DuplicatedParameterAttributesProgram),
-				new string[] { "parameter" }, messenger);
+				new[] { "parameter" }, messenger);
 		}
 
 		public class DuplicatedParameterAttributesProgram
@@ -244,7 +241,7 @@ namespace NConsoler.Tests
 			messenger.Write("Not all required parameters are set");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram),
-				new string[] { "test" }, messenger);
+				new[] { "test" }, messenger);
 		}
 
 		[Test]
@@ -253,7 +250,7 @@ namespace NConsoler.Tests
 			messenger.Write("Unknown parameter name /unknown:value");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
-				new string[] { "required", "/unknown:value" }, messenger);
+				new[] { "required", "/unknown:value" }, messenger);
 		}
 
 		[Test]
@@ -262,7 +259,7 @@ namespace NConsoler.Tests
 			messenger.Write("Unknown parameter name /-unknown");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
-				new string[] { "required", "/-unknown" }, messenger);
+				new[] { "required", "/-unknown" }, messenger);
 		}
 
 		[Test]
@@ -271,7 +268,7 @@ namespace NConsoler.Tests
 			messenger.Write("Unknown parameter name /unknown");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
-				new string[] { "required", "/unknown" }, messenger);
+				new[] { "required", "/unknown" }, messenger);
 		}
 
 		[Test]
@@ -280,7 +277,7 @@ namespace NConsoler.Tests
 			messenger.Write("m2test");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(TwoActionsProgram),
-				new string[] { "Test2", "test" }, messenger);
+				new[] { "Test2", "test" }, messenger);
 		}
 
 		[Test]
@@ -288,7 +285,7 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("usage: twoactionsprogram test2 parameter");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(TwoActionsProgram), new string[] { "help", "Test2" }, messenger);
+			Consolery.Run(typeof(TwoActionsProgram), new[] { "help", "Test2" }, messenger);
 		}
 
 		public class TwoActionsProgram
@@ -314,7 +311,7 @@ namespace NConsoler.Tests
 			messenger.Write("test");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(WithoutArgumentsProgram),
-				new string[] { "Test" }, messenger);
+				new[] { "Test" }, messenger);
 		}
 
 		public class WithoutArgumentsProgram
@@ -337,7 +334,7 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("Incorrect arguments!");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(ThrowExceptionProgram), new string[] {"value"}, messenger);
+			Consolery.Run(typeof(ThrowExceptionProgram), new[] {"value"}, messenger);
 		}
 
 		public class ThrowExceptionProgram
@@ -363,24 +360,23 @@ namespace NConsoler.Tests
 		{
 			messenger.Write("31-12-2008");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(OptionalDateTimeProgram), new string[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
+			Consolery.Run(typeof(OptionalDateTimeProgram), new[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
 		}
 
 		[Test]
-		[Ignore]
 		public void Should_work_with_net40_optional_arguments()
 		{
-			messenger.Write("1 true");
+			messenger.Write("1 True");
 			mocks.ReplayAll();
-			Consolery.Run(typeof(net40OptionalArgumentsProgram), new string[] { "1" }, messenger);
+			Consolery.Run(typeof(Net40OptionalArgumentsProgram), new[] { "1" }, messenger);
 		}
 
-		public class net40OptionalArgumentsProgram
+		public class Net40OptionalArgumentsProgram
 		{
 			[Action]
 			public static void Test(int required, bool optional = true)
 			{
-				messenger.Write(required.ToString() + " " + optional.ToString());
+				messenger.Write(required + " " + optional);
 			}
 		}
 

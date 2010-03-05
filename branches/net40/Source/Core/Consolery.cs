@@ -9,7 +9,6 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
-using System.ComponentModel;
 
 namespace NConsoler
 {
@@ -142,8 +141,12 @@ namespace NConsoler
 			return !IsRequired(info);
 		}
 
-		private static OptionalData GetOptional(ICustomAttributeProvider info)
+		private static OptionalData GetOptional(ParameterInfo info)
 		{
+			if (info.IsOptional)
+			{
+				return new OptionalData {Default = info.DefaultValue};
+			}
 			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
 			var attribute = (OptionalAttribute)attributes[0];
 			return new OptionalData {AltNames = attribute.AltNames, Default = attribute.Default};
@@ -151,6 +154,11 @@ namespace NConsoler
 
 		public class OptionalData
 		{
+			public OptionalData()
+			{
+				AltNames = new string[]{};
+			}
+
 			public string[] AltNames { get; set; }
 
 			public object Default { get; set; }
