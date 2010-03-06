@@ -35,7 +35,7 @@ namespace NConsoler
 
 			// The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32,
 			// UInt32, Int64, UInt64, Char, Double, and Single
-			if (argumentType.IsPrimitive || argumentType == typeof(decimal))
+			if (argumentType.IsPrimitive || argumentType == typeof(decimal) || argumentType.IsEnum)
 			{
 				try
 				{

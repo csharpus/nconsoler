@@ -380,6 +380,48 @@ namespace NConsoler.Tests
 			}
 		}
 
+		
+		[Test]
+		public void EnumDecimalTest()
+		{
+			messenger.Write("1");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(EnumDecimalProgram), new[] { "1" });
+		}
+
+		public class EnumDecimalProgram
+		{
+			[Action]
+			public static void RunProgram([Required]decimal d)
+			{
+				messenger.Write(d.ToString());
+
+			}
+		}
+
+		[Test]
+		public void EnumParameterTest()
+		{
+			messenger.Write("One");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(EnumParameterProgram), new[] { "One" });
+		}
+
+		public class EnumParameterProgram
+		{
+			[Action]
+			public static void RunProgram([Required]TestEnum testEnum)
+			{
+				messenger.Write(testEnum.ToString());
+			}
+		}
+
+		public enum TestEnum
+		{
+			One,
+			Two
+		}
+
 		[TearDown]
 		public void Teardown()
 		{

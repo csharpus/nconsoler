@@ -5,6 +5,13 @@ namespace NConsoler.Tests
 	[TestFixture]
 	public class ConverterTests
 	{
+		public enum TestEnum
+		{
+			First,
+			Second,
+			FIRST
+		}
+
 		[Test]
 		public void TestDecimalParameter()
 		{
@@ -40,12 +47,18 @@ namespace NConsoler.Tests
 			Assert.That(result == "a".ToCharArray()[0]);
 		}
 
-
 		[Test]
 		public void TestBooleanParameter()
 		{
 			var result = (bool)StringToObject.ConvertValue("true", typeof(bool));
 			Assert.That(result);
+		}
+
+		[Test]
+		public void TestEnumParameter()
+		{
+			var result = (TestEnum)StringToObject.ConvertValue("First", typeof(TestEnum));
+			Assert.That(result == TestEnum.First);
 		}
 	}
 }
