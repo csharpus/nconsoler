@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics.Contracts;
 
 namespace NConsoler
 {
@@ -7,6 +8,9 @@ namespace NConsoler
 	{
 		public static object ConvertValue(string value, Type argumentType)
 		{
+			Contract.Requires(value != null);
+			Contract.Requires(argumentType != null);
+
 			if (value == String.Empty)
 			{
 				return GetDefault(argumentType);
@@ -67,6 +71,8 @@ namespace NConsoler
 
 		private static DateTime ConvertToDateTime(string parameter)
 		{
+			Contract.Requires(parameter != null);
+
 			string[] parts = parameter.Split('-');
 			if (parts.Length != 3)
 			{
@@ -87,6 +93,8 @@ namespace NConsoler
 
 		public static bool CanBeConvertedToDate(string parameter)
 		{
+			Contract.Requires(parameter != null);
+
 			try
 			{
 				ConvertToDateTime(parameter);
@@ -100,11 +108,15 @@ namespace NConsoler
 
 		static bool IsNullableType(Type type)
 		{
+			Contract.Requires(type != null);
+
 			return Nullable.GetUnderlyingType(type) != null;
 		}
 
 		public static object GetDefault(Type type)
 		{
+			Contract.Requires(type != null);
+
 			return type.IsValueType ? Activator.CreateInstance(type) : null;
 		}
 	}
