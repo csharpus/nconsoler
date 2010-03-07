@@ -7,6 +7,16 @@ namespace NConsoler
 	{
 		public static object ConvertValue(string value, Type argumentType)
 		{
+			if (value == String.Empty)
+			{
+				return GetDefault(argumentType);
+			}
+
+			if(IsNullableType(argumentType))
+			{
+				argumentType = Nullable.GetUnderlyingType(argumentType);
+			}
+
 			if (argumentType == typeof(String))
 			{
 				return value;
@@ -86,6 +96,16 @@ namespace NConsoler
 			{
 				return false;
 			}
+		}
+
+		static bool IsNullableType(Type type)
+		{
+			return Nullable.GetUnderlyingType(type) != null;
+		}
+
+		public static object GetDefault(Type type)
+		{
+			return type.IsValueType ? Activator.CreateInstance(type) : null;
 		}
 	}
 }

@@ -395,7 +395,6 @@ namespace NConsoler.Tests
 			public static void RunProgram([Required]decimal d)
 			{
 				messenger.Write(d.ToString());
-
 			}
 		}
 
@@ -420,6 +419,23 @@ namespace NConsoler.Tests
 		{
 			One,
 			Two
+		}
+
+		[Test]
+		public void NullableParameter()
+		{
+			messenger.Write("10");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(NullableParameterProgram), new[] { "10" });
+		}
+
+		public class NullableParameterProgram
+		{
+			[Action]
+			public static void RunProgram([Required]int? i)
+			{
+				messenger.Write(i.ToString());
+			}
 		}
 
 		[TearDown]

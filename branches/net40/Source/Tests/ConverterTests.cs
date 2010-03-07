@@ -60,5 +60,22 @@ namespace NConsoler.Tests
 			var result = (TestEnum)StringToObject.ConvertValue("First", typeof(TestEnum));
 			Assert.That(result == TestEnum.First);
 		}
+
+		[Test]
+		public void TestNullableParameter()
+		{
+			var result = (int?)StringToObject.ConvertValue("10", typeof(int?));
+			var nullResult = (int?)StringToObject.ConvertValue("", typeof(int?));
+			
+			Assert.That(result == 10);
+			Assert.That(nullResult == null);
+		}
+
+		[Test]
+		public void TestStringEmptyParameter()
+		{
+			var result = (int)StringToObject.ConvertValue("", typeof(int));
+			Assert.That(result == 0);
+		}
 	}
 }
