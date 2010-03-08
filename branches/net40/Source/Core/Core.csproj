@@ -86,6 +86,7 @@
     <Compile Include="IMessenger.cs" />
     <Compile Include="Consolery.cs" />
     <Compile Include="NConsolerException.cs" />
+    <Compile Include="NotationStrategy.cs" />
     <Compile Include="OptionalAttribute.cs" />
     <Compile Include="ParameterAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
