@@ -71,6 +71,8 @@ namespace NConsoler
 		private readonly List<MethodInfo> _actionMethods = new List<MethodInfo>();
 		private readonly IMessenger _messenger;
 		private readonly NotationStrategy _notation;
+		private readonly Metadata _metadata;
+		private readonly MetadataValidator _metadataValidator;
 
 		public Consolery(Type targetType, string[] args, IMessenger messenger)
 		{
@@ -86,20 +88,10 @@ namespace NConsoler
 				.GetMethods(BindingFlags.Public | BindingFlags.Static)
 				.Where(method => method.GetCustomAttributes(false).OfType<ActionAttribute>().Any())
 				.ToList();
-
-			_notation = new NotationStrategy(this, _args, _messenger);
-		}
-
-		private bool SingleActionWithOnlyOptionalParametersSpecified()
-		{
-			if (IsMulticommand) return false;
-			MethodInfo method = _actionMethods[0];
-			return OnlyOptionalParametersSpecified(method);
-		}
-
-		private bool OnlyOptionalParametersSpecified(MethodBase method)
-		{
-			return method.GetParameters().All(parameter => !IsRequired(parameter));
+			
+			_metadata = new Metadata(_actionMethods);
+			_metadataValidator = new MetadataValidator(_targetType, _actionMethods, _metadata);
+			_notation = new NotationStrategy(_args, _messenger, _metadata);
 		}
 
 		private void RunAction()
@@ -111,7 +103,7 @@ namespace NConsoler
 				return;
 			}
 
-			MethodInfo currentMethod = GetCurrentMethod();
+			MethodInfo currentMethod = _notation.GetCurrentMethod();
 			if (currentMethod == null)
 			{
 				PrintUsage();
@@ -119,6 +111,11 @@ namespace NConsoler
 			}
 			_notation.ValidateInput(currentMethod);
 			InvokeMethod(currentMethod);
+		}
+
+		private void ValidateMetadata()
+		{
+			_metadataValidator.ValidateMetadata();
 		}
 
 		public struct ParameterData
@@ -133,28 +130,6 @@ namespace NConsoler
 			}
 		}
 
-		public bool IsRequired(ParameterInfo info)
-		{
-			object[] attributes = info.GetCustomAttributes(typeof (ParameterAttribute), false);
-			return !info.IsOptional && (attributes.Length == 0 || attributes[0].GetType() == typeof (RequiredAttribute));
-		}
-
-		private bool IsOptional(ParameterInfo info)
-		{
-			return !IsRequired(info);
-		}
-
-		public OptionalData GetOptional(ParameterInfo info)
-		{
-			if (info.IsOptional)
-			{
-				return new OptionalData {Default = info.DefaultValue};
-			}
-			object[] attributes = info.GetCustomAttributes(typeof(OptionalAttribute), false);
-			var attribute = (OptionalAttribute)attributes[0];
-			return new OptionalData {AltNames = attribute.AltNames, Default = attribute.Default};
-		}
-
 		public class OptionalData
 		{
 			public OptionalData()
@@ -167,14 +142,9 @@ namespace NConsoler
 			public object Default { get; set; }
 		}
 
-		public bool IsMulticommand
-		{
-			get { return _actionMethods.Count > 1; }
-		}
-
 		private bool IsHelpRequested()
 		{
-			return (_args.Length == 0 && !SingleActionWithOnlyOptionalParametersSpecified())
+			return (_args.Length == 0 && !_metadata.SingleActionWithOnlyOptionalParametersSpecified())
 			       || (_args.Length > 0 && (_args[0] == "/?"
 			                                || _args[0] == "/help"
 			                                || _args[0] == "/h"
@@ -197,38 +167,6 @@ namespace NConsoler
 			}
 		}
 
-		public IEnumerable<string> OptionalParameters(MethodInfo method)
-		{
-			int firstOptionalParameterIndex = RequiredParameterCount(method);
-			if (IsMulticommand)
-			{
-				firstOptionalParameterIndex++;
-			}
-			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
-			{
-				yield return _args[i];
-			}
-		}
-
-		public int RequiredParameterCount(MethodInfo method)
-		{
-			return method.GetParameters().Count(IsRequired);
-		}
-
-		private MethodInfo GetCurrentMethod()
-		{
-			if (!IsMulticommand)
-			{
-				return _actionMethods[0];
-			}
-			return GetMethodByName(_args[0].ToLower());
-		}
-
-		public MethodInfo GetMethodByName(string name)
-		{
-			return _actionMethods.FirstOrDefault(method => method.Name.ToLower() == name);
-		}
-
 		#region Usage
 
 		private void PrintUsage(MethodInfo method)
@@ -241,7 +179,7 @@ namespace NConsoler
 
 		private void PrintUsageExample(MethodInfo method, IDictionary<string, string> parameterList)
 		{
-			string subcommand = IsMulticommand ? method.Name.ToLower() + " " : String.Empty;
+			string subcommand = _metadata.IsMulticommand ? method.Name.ToLower() + " " : String.Empty;
 			string parameters = String.Join(" ", new List<string>(parameterList.Keys).ToArray());
 			_messenger.Write("usage: " + ProgramName() + " " + subcommand + parameters);
 		}
@@ -258,7 +196,7 @@ namespace NConsoler
 			object[] attributes = method.GetCustomAttributes(true);
 			foreach (ActionAttribute attribute in attributes.OfType<ActionAttribute>())
 			{
-				return (attribute).Description;
+				return attribute.Description;
 			}
 			throw new NConsolerException("Method is not marked with an Action attribute");
 		}
@@ -314,11 +252,11 @@ namespace NConsoler
 
 		private void PrintUsage()
 		{
-			if (IsMulticommand && !IsSubcommandHelpRequested())
+			if (_metadata.IsMulticommand && !IsSubcommandHelpRequested())
 			{
 				PrintGeneralMulticommandUsage();
 			}
-			else if (IsMulticommand && IsSubcommandHelpRequested())
+			else if (_metadata.IsMulticommand && IsSubcommandHelpRequested())
 			{
 				PrintSubcommandUsage();
 			}
@@ -330,7 +268,7 @@ namespace NConsoler
 
 		private void PrintSubcommandUsage()
 		{
-			MethodInfo method = GetMethodByName(_args[1].ToLower());
+			MethodInfo method = _metadata.GetMethodByName(_args[1].ToLower());
 			if (method == null)
 			{
 				PrintGeneralMulticommandUsage();
@@ -361,11 +299,11 @@ namespace NConsoler
 
 		private string GetDisplayName(ParameterInfo parameter)
 		{
-			if (IsRequired(parameter))
+			if (_metadata.IsRequired(parameter))
 			{
 				return parameter.Name;
 			}
-			var optional = GetOptional(parameter);
+			var optional = _metadata.GetOptional(parameter);
 			string parameterName =
 				(optional.AltNames.Length > 0) ? optional.AltNames[0] : parameter.Name;
 			if (parameter.ParameterType != typeof (bool))
@@ -398,149 +336,6 @@ namespace NConsoler
 				return "dd-mm-yyyy";
 			}
 			throw new ArgumentOutOfRangeException(String.Format("Type {0} is unknown", type.Name));
-		}
-
-		#endregion
-
-		#region Validation
-
-		private void ValidateMetadata()
-		{
-			CheckAnyActionMethodExists();
-			IfActionMethodIsSingleCheckMethodHasParameters();
-			foreach (MethodInfo method in _actionMethods)
-			{
-				CheckActionMethodNamesAreNotReserved();
-				CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(method);
-				CheckOptionalParametersAreAfterRequiredOnes(method);
-				CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(method);
-				CheckOptionalParametersAltNamesAreNotDuplicated(method);
-			}
-		}
-
-		private void CheckActionMethodNamesAreNotReserved()
-		{
-			foreach (MethodInfo method in _actionMethods)
-			{
-				if (method.Name.ToLower() == "help")
-				{
-					throw new NConsolerException("Method name \"{0}\" is reserved. Please, choose another name", method.Name);
-				}
-			}
-		}
-
-		private void CheckAnyActionMethodExists()
-		{
-			if (_actionMethods.Count == 0)
-			{
-				throw new NConsolerException(
-					"Can not find any public static method marked with [Action] attribute in type \"{0}\"", _targetType.Name);
-			}
-		}
-
-		private void IfActionMethodIsSingleCheckMethodHasParameters()
-		{
-			if (_actionMethods.Count == 1 && _actionMethods[0].GetParameters().Length == 0)
-			{
-				throw new NConsolerException(
-					"[Action] attribute applied once to the method \"{0}\" without parameters. In this case NConsoler should not be used",
-					_actionMethods[0].Name);
-			}
-		}
-
-		private static void CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(MethodBase method)
-		{
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				object[] attributes = parameter.GetCustomAttributes(typeof (ParameterAttribute), false);
-				if (attributes.Length > 1)
-				{
-					throw new NConsolerException("More than one attribute is applied to the parameter \"{0}\" in the method \"{1}\"",
-					                             parameter.Name, method.Name);
-				}
-			}
-		}
-
-		private static bool CanBeNull(Type type)
-		{
-			return type == typeof (string)
-			       || type == typeof (string[])
-			       || type == typeof (int[]);
-		}
-
-		private void CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(MethodBase method)
-		{
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				if (IsRequired(parameter))
-				{
-					continue;
-				}
-				var optional = GetOptional(parameter);
-				if (optional.Default != null && optional.Default.GetType() == typeof (string) &&
-				    StringToObject.CanBeConvertedToDate(optional.Default.ToString()))
-				{
-					return;
-				}
-				if ((optional.Default == null && !CanBeNull(parameter.ParameterType))
-				    || (optional.Default != null && !optional.Default.GetType().IsAssignableFrom(parameter.ParameterType)))
-				{
-					throw new NConsolerException(
-						"Default value for an optional parameter \"{0}\" in method \"{1}\" can not be assigned to the parameter",
-						parameter.Name, method.Name);
-				}
-			}
-		}
-
-		private void CheckOptionalParametersAreAfterRequiredOnes(MethodBase method)
-		{
-			bool optionalFound = false;
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				if (IsOptional(parameter))
-				{
-					optionalFound = true;
-				}
-				else if (optionalFound)
-				{
-					throw new NConsolerException(
-						"It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"{0}\" parameter \"{1}\"",
-						method.Name, parameter.Name);
-				}
-			}
-		}
-
-		private void CheckOptionalParametersAltNamesAreNotDuplicated(MethodBase method)
-		{
-			var parameterNames = new List<string>();
-			foreach (ParameterInfo parameter in method.GetParameters())
-			{
-				if (IsRequired(parameter))
-				{
-					parameterNames.Add(parameter.Name.ToLower());
-				}
-				else
-				{
-					if (parameterNames.Contains(parameter.Name.ToLower()))
-					{
-						throw new NConsolerException(
-							"Found duplicated parameter name \"{0}\" in method \"{1}\". Please check alt names for optional parameters",
-							parameter.Name, method.Name);
-					}
-					parameterNames.Add(parameter.Name.ToLower());
-					var optional = GetOptional(parameter);
-					foreach (string altName in optional.AltNames)
-					{
-						if (parameterNames.Contains(altName.ToLower()))
-						{
-							throw new NConsolerException(
-								"Found duplicated parameter name \"{0}\" in method \"{1}\". Please check alt names for optional parameters",
-								altName, method.Name);
-						}
-						parameterNames.Add(altName.ToLower());
-					}
-				}
-			}
 		}
 
 		#endregion

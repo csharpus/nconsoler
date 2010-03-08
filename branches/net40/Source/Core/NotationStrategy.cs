@@ -5,15 +5,24 @@ namespace NConsoler
 {
 	public class NotationStrategy
 	{
-		private readonly Consolery _consolery;
 		private readonly string[] _args;
 		private readonly IMessenger _messenger;
+		private readonly Metadata _metadata;
 
-		public NotationStrategy(Consolery consolery, string[] args, IMessenger messenger)
+		public NotationStrategy(string[] args, IMessenger messenger, Metadata metadata)
 		{
-			_consolery = consolery;
 			_args = args;
 			_messenger = messenger;
+			_metadata = metadata;
+		}
+
+		public MethodInfo GetCurrentMethod()
+		{
+			if (!_metadata.IsMulticommand)
+			{
+				return _metadata.FirstActionMethod();
+			}
+			return _metadata.GetMethodByName(_args[0].ToLower());
 		}
 
 		public void ValidateInput(MethodInfo method)
@@ -25,8 +34,8 @@ namespace NConsoler
 
 		private void CheckAllRequiredParametersAreSet(MethodInfo method)
 		{
-			int minimumArgsLengh = _consolery.RequiredParameterCount(method);
-			if (_consolery.IsMulticommand)
+			int minimumArgsLengh = _metadata.RequiredParameterCount(method);
+			if (_metadata.IsMulticommand)
 			{
 				minimumArgsLengh++;
 			}
@@ -39,7 +48,7 @@ namespace NConsoler
 		private void CheckOptionalParametersAreNotDuplicated(MethodInfo method)
 		{
 			var passedParameters = new List<string>();
-			foreach (string optionalParameter in _consolery.OptionalParameters(method))
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
 				if (!optionalParameter.StartsWith("/"))
 				{
@@ -59,18 +68,18 @@ namespace NConsoler
 			var parameterNames = new List<string>();
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
-				if (_consolery.IsRequired(parameter))
+				if (_metadata.IsRequired(parameter))
 				{
 					continue;
 				}
 				parameterNames.Add(parameter.Name.ToLower());
-				var optional = _consolery.GetOptional(parameter);
+				var optional = _metadata.GetOptional(parameter);
 				foreach (string altName in optional.AltNames)
 				{
 					parameterNames.Add(altName.ToLower());
 				}
 			}
-			foreach (string optionalParameter in _consolery.OptionalParameters(method))
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
 				string name = ParameterName(optionalParameter);
 				if (!parameterNames.Contains(name.ToLower()))
@@ -95,18 +104,18 @@ namespace NConsoler
 
 		public object[] BuildParameterArray(MethodInfo method)
 		{
-			int argumentIndex = _consolery.IsMulticommand ? 1 : 0;
+			int argumentIndex = _metadata.IsMulticommand ? 1 : 0;
 			var parameterValues = new List<object>();
 			var aliases = new Dictionary<string, Consolery.ParameterData>();
 			foreach (ParameterInfo info in method.GetParameters())
 			{
-				if (_consolery.IsRequired(info))
+				if (_metadata.IsRequired(info))
 				{
 					parameterValues.Add(StringToObject.ConvertValue(_args[argumentIndex], info.ParameterType));
 				}
 				else
 				{
-					var optional = _consolery.GetOptional(info);
+					var optional = _metadata.GetOptional(info);
 
 					foreach (string altName in optional.AltNames)
 					{
@@ -119,7 +128,7 @@ namespace NConsoler
 				}
 				argumentIndex++;
 			}
-			foreach (string optionalParameter in _consolery.OptionalParameters(method))
+			foreach (string optionalParameter in OptionalParameters(method))
 			{
 				string name = ParameterName(optionalParameter);
 				string value = ParameterValue(optionalParameter);
@@ -139,6 +148,19 @@ namespace NConsoler
 				return parameter.Substring(parameter.IndexOf(":") + 1);
 			}
 			return "true";
+		}
+
+		public IEnumerable<string> OptionalParameters(MethodInfo method)
+		{
+			int firstOptionalParameterIndex = _metadata.RequiredParameterCount(method);
+			if (_metadata.IsMulticommand)
+			{
+				firstOptionalParameterIndex++;
+			}
+			for (int i = firstOptionalParameterIndex; i < _args.Length; i++)
+			{
+				yield return _args[i];
+			}
 		}
 	}
 }
