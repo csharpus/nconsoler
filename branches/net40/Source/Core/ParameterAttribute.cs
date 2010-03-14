@@ -8,20 +8,14 @@ namespace NConsoler
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
 	public class ParameterAttribute : Attribute
 	{
-		private string _description = String.Empty;
-
 		/// <summary>
 		/// Description is used in help message
 		/// </summary>
-		public string Description
-		{
-			get { return _description; }
-
-			set { _description = value; }
-		}
+		public string Description { get; set; }
 
 		protected ParameterAttribute()
 		{
+			Description = String.Empty;
 		}
 	}
 }
