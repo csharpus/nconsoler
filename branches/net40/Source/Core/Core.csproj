@@ -85,10 +85,12 @@
     <Compile Include="ConsoleMessenger.cs" />
     <Compile Include="IMessenger.cs" />
     <Compile Include="Consolery.cs" />
+    <Compile Include="INotationStrategy.cs" />
+    <Compile Include="LinuxNotationStrategy.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="MetadataValidator.cs" />
     <Compile Include="NConsolerException.cs" />
-    <Compile Include="NotationStrategy.cs" />
+    <Compile Include="WindowsNotationStrategy.cs" />
     <Compile Include="OptionalAttribute.cs" />
     <Compile Include="ParameterAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -3,13 +3,13 @@ using System.Reflection;
 
 namespace NConsoler
 {
-	public class NotationStrategy
+	public class WindowsNotationStrategy : INotationStrategy
 	{
 		private readonly string[] _args;
 		private readonly IMessenger _messenger;
 		private readonly Metadata _metadata;
 
-		public NotationStrategy(string[] args, IMessenger messenger, Metadata metadata)
+		public WindowsNotationStrategy(string[] args, IMessenger messenger, Metadata metadata)
 		{
 			_args = args;
 			_messenger = messenger;

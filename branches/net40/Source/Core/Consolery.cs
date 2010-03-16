@@ -45,11 +45,12 @@ namespace NConsoler
 		/// <param name="targetType">Type where to search for Action methods</param>
 		/// <param name="args">Arguments that will be converted to Action method arguments</param>
 		/// <param name="messenger">Uses for writing messages instead of Console class methods</param>
-		public static void Run(Type targetType, string[] args, IMessenger messenger)
+		/// <param name="notationType">Switch for command line syntax. Windows: /param:value Linux: -param value</param>
+		public static void Run(Type targetType, string[] args, IMessenger messenger, Notation notationType = Notation.Windows)
 		{
 			try
 			{
-				new Consolery(targetType, args, messenger).RunAction();
+				new Consolery(targetType, args, messenger, notationType).RunAction();
 			}
 			catch (NConsolerException e)
 			{
@@ -63,18 +64,18 @@ namespace NConsoler
 		/// <param name="targetType">Type where to search for Action methods</param>
 		public static void Validate(Type targetType)
 		{
-			new Consolery(targetType, new string[] {}, new ConsoleMessenger()).ValidateMetadata();
+			new Consolery(targetType, new string[] {}, new ConsoleMessenger(), Notation.None).ValidateMetadata();
 		}
 
 		private readonly Type _targetType;
 		private readonly string[] _args;
 		private readonly List<MethodInfo> _actionMethods = new List<MethodInfo>();
 		private readonly IMessenger _messenger;
-		private readonly NotationStrategy _notation;
+		private readonly INotationStrategy _notation;
 		private readonly Metadata _metadata;
 		private readonly MetadataValidator _metadataValidator;
 
-		public Consolery(Type targetType, string[] args, IMessenger messenger)
+		public Consolery(Type targetType, string[] args, IMessenger messenger, Notation notationType)
 		{
 			Contract.Requires(targetType != null);
 			Contract.Requires(args != null);
@@ -91,7 +92,13 @@ namespace NConsoler
 			
 			_metadata = new Metadata(_actionMethods);
 			_metadataValidator = new MetadataValidator(_targetType, _actionMethods, _metadata);
-			_notation = new NotationStrategy(_args, _messenger, _metadata);
+			if (notationType == Notation.Windows)
+			{
+				_notation = new WindowsNotationStrategy(_args, _messenger, _metadata);
+			} else
+			{
+				_notation = new LinuxNotationStrategy(_args, _messenger, _metadata);
+			}
 		}
 
 		private void RunAction()
@@ -339,5 +346,12 @@ namespace NConsoler
 		}
 
 		#endregion
+	}
+
+	public enum Notation
+	{
+		None = 0,
+		Windows = 1,
+		Linux = 2
 	}
 }
