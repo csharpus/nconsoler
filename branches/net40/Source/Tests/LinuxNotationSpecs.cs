@@ -6,7 +6,7 @@ namespace NConsoler.Tests
 	[TestFixture]
 	public class when_only_required_params_specified
 	{
-		[Test, Ignore]
+		[Test]
 		public void should_run_action_method()
 		{
 			var messenger = MockRepository.GenerateStub<IMessenger>();

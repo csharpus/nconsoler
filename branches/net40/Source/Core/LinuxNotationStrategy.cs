@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace NConsoler
@@ -33,7 +34,8 @@ namespace NConsoler
 
 		public object[] BuildParameterArray(MethodInfo method)
 		{
-			return new object[] {};
+			var parameters = method.GetParameters();
+			return _args.Select((t, i) => StringToObject.ConvertValue(t, parameters[i].ParameterType)).ToArray();
 		}
 
 		public IEnumerable<string> OptionalParameters(MethodInfo method)
