@@ -29,13 +29,37 @@ namespace NConsoler
 
 		public void ValidateInput(MethodInfo method)
 		{
-			
 		}
 
 		public object[] BuildParameterArray(MethodInfo method)
 		{
+			var optionalValues = new Dictionary<string, string>();
+			for (var i = 0; i < _args.Length - _metadata.RequiredParameterCount(method); i += 2)
+			{
+				optionalValues.Add(_args[i].Substring(1), _args[i + 1]);
+			}
 			var parameters = method.GetParameters();
-			return _args.Select((t, i) => StringToObject.ConvertValue(t, parameters[i].ParameterType)).ToArray();
+			var parameterValues = parameters.Select(p => (object) null).ToList();
+
+			var requiredStartIndex = _args.Length - _metadata.RequiredParameterCount(method);
+			var requiredValues = _args.Where((a, i) => i >= requiredStartIndex).ToList();
+			for (var i = 0; i < requiredValues.Count; i++)
+			{
+				parameterValues[i] = StringToObject.ConvertValue(requiredValues[i], parameters[i].ParameterType);
+			}
+			for (var i = _metadata.RequiredParameterCount(method); i < parameters.Length; i++ )
+			{
+				var optional = _metadata.GetOptional(parameters[i]);
+				if (optionalValues.ContainsKey(parameters[i].Name))
+				{
+					parameterValues[i] = StringToObject.ConvertValue(optionalValues[parameters[i].Name], parameters[i].ParameterType);
+				}
+				else
+				{
+					parameterValues[i] = optional.Default;
+				}
+			}
+			return parameterValues.ToArray();
 		}
 
 		public IEnumerable<string> OptionalParameters(MethodInfo method)
