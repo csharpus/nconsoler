@@ -11,6 +11,24 @@ namespace NConsoler
 			Contract.Requires(value != null);
 			Contract.Requires(argumentType != null);
 
+			if (argumentType.IsArray)
+			{
+				var arrayItemType = argumentType.GetElementType();
+				var array = value.Split('+');
+				var valuesArray = Array.CreateInstance(arrayItemType, array.Length);
+				for (var i = 0; i < array.Length; i++)
+				{
+					var arrayItem = ConvertSingleValue(array[i], arrayItemType);
+					valuesArray.SetValue(arrayItem, i);
+				}
+				return valuesArray;
+			}
+
+			return ConvertSingleValue(value, argumentType);
+		}
+
+		private static object ConvertSingleValue(string value, Type argumentType)
+		{
 			if (value == String.Empty)
 			{
 				return GetDefault(argumentType);
@@ -31,21 +49,7 @@ namespace NConsoler
 				return ConvertToDateTime(value);
 			}
 
-			if (argumentType == typeof(string[]))
-			{
-				return value.Split('+');
-			}
-
-			if (argumentType == typeof(int[]))
-			{
-				string[] values = value.Split('+');
-				var valuesArray = new int[values.Length];
-				for (int i = 0; i < values.Length; i++)
-				{
-					valuesArray[i] = (int)ConvertValue(values[i], typeof(int));
-				}
-				return valuesArray;
-			}
+			
 
 			// The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32,
 			// UInt32, Int64, UInt64, Char, Double, and Single
