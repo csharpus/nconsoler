@@ -89,13 +89,14 @@ namespace NConsoler
 				.GetMethods(BindingFlags.Public | BindingFlags.Static)
 				.Where(method => method.GetCustomAttributes(false).OfType<ActionAttribute>().Any())
 				.ToList();
-			
+
 			_metadata = new Metadata(_actionMethods);
 			_metadataValidator = new MetadataValidator(_targetType, _actionMethods, _metadata);
 			if (notationType == Notation.Windows)
 			{
 				_notation = new WindowsNotationStrategy(_args, _messenger, _metadata);
-			} else
+			}
+			else
 			{
 				_notation = new LinuxNotationStrategy(_args, _messenger, _metadata);
 			}
@@ -141,7 +142,7 @@ namespace NConsoler
 		{
 			public OptionalData()
 			{
-				AltNames = new string[]{};
+				AltNames = new string[] {};
 			}
 
 			public string[] AltNames { get; set; }
