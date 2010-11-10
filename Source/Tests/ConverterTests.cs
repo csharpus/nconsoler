@@ -15,7 +15,7 @@ namespace NConsoler.Tests
 		[Test]
 		public void TestDecimalParameter()
 		{
-			var result = (decimal)StringToObject.ConvertValue("10,00", typeof (decimal));
+			var result = (decimal)StringToObject.ConvertValue("10.00", typeof (decimal));
 			Assert.That(result == 10.00m);
 		}
 
@@ -36,7 +36,7 @@ namespace NConsoler.Tests
 		[Test]
 		public void TestDoubleParameter()
 		{
-			var result = (double)StringToObject.ConvertValue("11,11", typeof(double));
+			var result = (double)StringToObject.ConvertValue("11.11", typeof(double));
 			Assert.That(result == 11.11d);
 		}
 
