@@ -1,2 +1,2 @@
-NUnit 2.4.3
+NUnit custom build for .net 4.0
 http://nunit.sourceforge.net
