@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
+using System.Globalization;
 
 namespace NConsoler
 {
@@ -34,31 +35,30 @@ namespace NConsoler
 				return GetDefault(argumentType);
 			}
 
-			if(IsNullableType(argumentType))
+			if (IsNullableType(argumentType))
 			{
 				argumentType = Nullable.GetUnderlyingType(argumentType);
 			}
 
-			if (argumentType == typeof(String))
+			if (argumentType == typeof (String))
 			{
 				return value;
 			}
 
-			if (argumentType == typeof(DateTime))
+			if (argumentType == typeof (DateTime))
 			{
 				return ConvertToDateTime(value);
 			}
 
-			
-
 			// The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32,
 			// UInt32, Int64, UInt64, Char, Double, and Single
-			if (argumentType.IsPrimitive || argumentType == typeof(decimal) || argumentType.IsEnum)
+			if (argumentType.IsPrimitive || argumentType == typeof (decimal) || argumentType.IsEnum)
 			{
 				try
 				{
 					var converter = TypeDescriptor.GetConverter(argumentType);
-					return converter.ConvertFromString(value);
+					// TODO: add possibility to use non invariant cultures
+					return converter.ConvertFromString(null, CultureInfo.InvariantCulture, value);
 				}
 				catch (FormatException)
 				{
@@ -82,9 +82,9 @@ namespace NConsoler
 			{
 				throw new NConsolerException("Could not convert {0} to Date", parameter);
 			}
-			var day = (int)ConvertValue(parts[0], typeof(int));
-			var month = (int)ConvertValue(parts[1], typeof(int));
-			var year = (int)ConvertValue(parts[2], typeof(int));
+			var day = (int) ConvertValue(parts[0], typeof (int));
+			var month = (int) ConvertValue(parts[1], typeof (int));
+			var year = (int) ConvertValue(parts[2], typeof (int));
 			try
 			{
 				return new DateTime(year, month, day);
@@ -110,7 +110,7 @@ namespace NConsoler
 			}
 		}
 
-		static bool IsNullableType(Type type)
+		private static bool IsNullableType(Type type)
 		{
 			Contract.Requires(type != null);
 
