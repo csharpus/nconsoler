@@ -85,7 +85,7 @@ namespace NConsoler.Tests
 			{
 				Consolery.Run(
 					typeof(CheatSheet),
-					new string[] { "first", "/optional:2", @"/value:3" },
+					new[] { "first", "/optional:2", @"/value:3" },
 					messenger);
 			}
 		}
