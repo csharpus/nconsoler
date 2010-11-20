@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NConsoler.Extensions;
 
 namespace NConsoler
 {
@@ -22,7 +23,7 @@ namespace NConsoler
 			CheckAnyActionMethodExists();
 			IfActionMethodIsSingleCheckMethodHasParameters();
 
-			foreach (MethodInfo method in _actionMethods)
+			foreach (var method in _actionMethods)
 			{
 				CheckActionMethodNamesAreNotReserved(method);
 				CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(method);
@@ -72,13 +73,6 @@ namespace NConsoler
 			}
 		}
 
-		private static bool CanBeNull(Type type)
-		{
-			return type == typeof(string)
-				   || type == typeof(string[])
-				   || type == typeof(int[]);
-		}
-
 		private void CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(MethodBase method)
 		{
 			foreach (ParameterInfo parameter in method.GetParameters())
@@ -93,7 +87,7 @@ namespace NConsoler
 				{
 					return;
 				}
-				if ((optional.Default == null && !CanBeNull(parameter.ParameterType))
+				if ((optional.Default == null && !parameter.ParameterType.CanBeNull())
 					|| (optional.Default != null && !optional.Default.GetType().IsAssignableFrom(parameter.ParameterType)))
 				{
 					throw new NConsolerException(
