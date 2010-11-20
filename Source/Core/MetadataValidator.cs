@@ -21,9 +21,10 @@ namespace NConsoler
 		{
 			CheckAnyActionMethodExists();
 			IfActionMethodIsSingleCheckMethodHasParameters();
+
 			foreach (MethodInfo method in _actionMethods)
 			{
-				CheckActionMethodNamesAreNotReserved();
+				CheckActionMethodNamesAreNotReserved(method);
 				CheckRequiredAndOptionalAreNotAppliedAtTheSameTime(method);
 				CheckOptionalParametersAreAfterRequiredOnes(method);
 				CheckOptionalParametersDefaultValuesAreAssignableToRealParameterTypes(method);
@@ -31,14 +32,11 @@ namespace NConsoler
 			}
 		}
 
-		private void CheckActionMethodNamesAreNotReserved()
+		private static void CheckActionMethodNamesAreNotReserved(MethodBase method)
 		{
-			foreach (MethodInfo method in _actionMethods)
+			if (method.Name.ToLower() == "help")
 			{
-				if (method.Name.ToLower() == "help")
-				{
-					throw new NConsolerException("Method name \"{0}\" is reserved. Please, choose another name", method.Name);
-				}
+				throw new NConsolerException("Method name \"{0}\" is reserved. Please, choose another name", method.Name);
 			}
 		}
 
