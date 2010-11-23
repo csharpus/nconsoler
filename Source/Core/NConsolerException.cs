@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System;
+
 	/// <summary>
 	/// Can be used for safe exception throwing - NConsoler will catch the exception
 	/// </summary>

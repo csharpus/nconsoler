@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System;
+
 	/// <summary>
 	/// Uses Console class for message output
 	/// </summary>

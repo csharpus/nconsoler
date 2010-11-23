@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using NConsoler.Extensions;
-
 namespace NConsoler
 {
+	using System;
+	using System.Collections.Generic;
+	using System.Reflection;
+	using Extensions;
+
 	public class MetadataValidator
 	{
 		private readonly Type _targetType;

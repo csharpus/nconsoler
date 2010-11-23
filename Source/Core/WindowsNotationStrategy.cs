@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Reflection;
-
 namespace NConsoler
 {
+	using System.Collections.Generic;
+	using System.Reflection;
+
 	public class WindowsNotationStrategy : INotationStrategy
 	{
 		private readonly string[] _args;
