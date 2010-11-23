@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{FC5B76E3-2D1F-45F0-AD67-859581786C48}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{45990BD4-FD94-44DA-8B57-ACED33620EB3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NConsoler.Specs</RootNamespace>
-    <AssemblyName>NConsoler.Specs</AssemblyName>
+    <RootNamespace>Combiner</RootNamespace>
+    <AssemblyName>Combiner</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,10 +30,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Machine.Specifications">
-      <HintPath>..\..\Dependencies\MSpec\Machine.Specifications.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,19 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Combiner\CombinatorSpecs.cs" />
-    <Compile Include="ParameterSpecs.cs" />
+    <Compile Include="CsharpFileRepository.cs" />
+    <Compile Include="CsharpCombinator.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Combiner\Combiner.csproj">
-      <Project>{45990BD4-FD94-44DA-8B57-ACED33620EB3}</Project>
-      <Name>Combiner</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Core.csproj">
-      <Project>{AE93694E-4528-4DB4-BA2C-A0DC171141FC}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

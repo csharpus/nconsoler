@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System;
+
 	/// <summary>
 	/// Should not be used directly
 	/// </summary>

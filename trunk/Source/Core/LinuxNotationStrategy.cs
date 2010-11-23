@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-
 namespace NConsoler
 {
+	using System.Collections.Generic;
+	using System.Linq;
+	using System.Reflection;
+
 	public class LinuxNotationStrategy : INotationStrategy
 	{
 		private readonly string[] _args;

@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System;
+
 	/// <summary>
 	/// Every action method should be marked with this attribute
 	/// </summary>

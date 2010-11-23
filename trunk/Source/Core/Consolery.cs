@@ -3,15 +3,15 @@
 // http://nconsoler.csharpus.com
 //
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Reflection;
-using System.Diagnostics;
-
 namespace NConsoler
 {
+	using System;
+	using System.Collections.Generic;
+	using System.Diagnostics.Contracts;
+	using System.Linq;
+	using System.Reflection;
+	using System.Diagnostics;
+
 	/// <summary>
 	/// Entry point for NConsoler applications
 	/// </summary>

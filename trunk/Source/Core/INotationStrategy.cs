@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System.Collections.Generic;
+	using System.Reflection;
+
 	public interface INotationStrategy
 	{
 		MethodInfo GetCurrentMethod();

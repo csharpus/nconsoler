@@ -1,10 +1,10 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics.Contracts;
-using System.Globalization;
-
-namespace NConsoler
+﻿namespace NConsoler
 {
+	using System;
+	using System.ComponentModel;
+	using System.Diagnostics.Contracts;
+	using System.Globalization;
+
 	public static class StringToObject
 	{
 		public static object ConvertValue(string value, Type argumentType)
