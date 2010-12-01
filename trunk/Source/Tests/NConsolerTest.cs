@@ -306,6 +306,29 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
+		public void Should_show_default_value_for_optional_parameter()
+		{
+			messenger.Write("usage: oneactionprogramwithoptionalparameters [/parameter1:value] [/param2:number]");
+			messenger.Write("    [/parameter1:value]  param1 desc");
+			messenger.Write("        default value: 'value1'");
+			messenger.Write("    [/param2:number]     desc2");
+			messenger.Write("        default value: 42");
+			mocks.ReplayAll();
+			Consolery.Run(typeof(OneActionProgramWithOptionalParameters), new[] { "help", "Test" }, messenger);
+		}
+
+		public class OneActionProgramWithOptionalParameters
+		{
+			[Action]
+			public static void Test(
+				[Optional("value1", Description = "param1 desc")]string parameter1,
+				[Optional(42, Description = "desc2")]int param2)
+			{
+				messenger.Write("m1" + param2);
+			}
+		}
+
+		[Test]
 		public void Should_work_without_arguments_in_action()
 		{
 			messenger.Write("test");
