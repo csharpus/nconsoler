@@ -5,6 +5,7 @@
 
 	public interface INotationStrategy
 	{
+		void PrintUsage();
 		MethodInfo GetCurrentMethod();
 		void ValidateInput(MethodInfo method);
 		object[] BuildParameterArray(MethodInfo method);
