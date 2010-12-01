@@ -65,5 +65,10 @@ namespace NConsoler
 		{
 			return new string[] {};
 		}
+
+		public void PrintUsage()
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }
