@@ -180,15 +180,16 @@ namespace NConsoler
 		private void PrintUsage(MethodInfo method)
 		{
 			PrintMethodDescription(method);
-			Dictionary<string, string> parameters = GetParametersDescriptions(method);
+			var parameters = GetParametersMetadata(method);
 			PrintUsageExample(method, parameters);
-			PrintParametersDescriptions(parameters);
+			PrintParameterUsage(parameters);
 		}
 
-		private void PrintUsageExample(MethodInfo method, IDictionary<string, string> parameterList)
+		private void PrintUsageExample(MethodInfo method, IList<ParameterMetadata> parameterList)
 		{
 			string subcommand = _metadata.IsMulticommand ? method.Name.ToLower() + " " : String.Empty;
-			string parameters = String.Join(" ", new List<string>(parameterList.Keys).ToArray());
+
+			string parameters = String.Join(" ", parameterList.Select(p=> p.Name).ToArray());
 			_messenger.Write("usage: " + ProgramName() + " " + subcommand + parameters);
 		}
 
@@ -209,43 +210,57 @@ namespace NConsoler
 			throw new NConsolerException("Method is not marked with an Action attribute");
 		}
 
-		private Dictionary<string, string> GetParametersDescriptions(MethodInfo method)
+		private IList<ParameterMetadata> GetParametersMetadata(MethodInfo method)
 		{
-			var parameters = new Dictionary<string, string>();
+			var result = new List<ParameterMetadata>();
 			foreach (ParameterInfo parameter in method.GetParameters())
 			{
 				object[] parameterAttributes =
 					parameter.GetCustomAttributes(typeof (ParameterAttribute), false);
+				var parameterMetadata = new ParameterMetadata {Name = GetDisplayName(parameter)};
 				if (parameterAttributes.Length > 0)
 				{
-					string name = GetDisplayName(parameter);
 					var attribute = (ParameterAttribute) parameterAttributes[0];
-					parameters.Add(name, attribute.Description);
+					parameterMetadata.Description = attribute.Description;
+					if(attribute is OptionalAttribute)
+					{
+						parameterMetadata.DefaultValue = ((OptionalAttribute) attribute).Default;
+					}
+					
 				}
-				else
-				{
-					parameters.Add(parameter.Name, String.Empty);
-				}
+				result.Add(parameterMetadata);
+				
 			}
-			return parameters;
+			return result;
 		}
 
-		private void PrintParametersDescriptions(IEnumerable<KeyValuePair<string, string>> parameters)
+		private void PrintParameterUsage(IList<ParameterMetadata> parameters)
 		{
+			string identation = "    ";
 			int maxParameterNameLength = MaxKeyLength(parameters);
-			foreach (KeyValuePair<string, string> pair in parameters)
+			foreach (var parameter in parameters)
 			{
-				if (pair.Value != String.Empty)
+				if (parameter.Description != String.Empty)
 				{
-					int difference = maxParameterNameLength - pair.Key.Length + 2;
-					_messenger.Write("    " + pair.Key + new String(' ', difference) + pair.Value);
+					int difference = maxParameterNameLength - parameter.Name.Length + 2;
+					
+					_messenger.Write(identation + parameter.Name + new String(' ', difference) + parameter.Description);
+				}
+				if (parameter.DefaultValue != null)
+				{
+					var valueText = parameter.DefaultValue.ToString();
+					if (parameter.DefaultValue is string)
+					{
+						valueText = string.Format("'{0}'", valueText);
+					}
+					_messenger.Write(identation + identation + "default value: " + valueText);
 				}
 			}
 		}
 
-		private static int MaxKeyLength(IEnumerable<KeyValuePair<string, string>> parameters)
+		private static int MaxKeyLength(IList<ParameterMetadata> parameters)
 		{
-			return parameters.Any() ? parameters.Select(p => p.Key).Max(k => k.Length) : 0;
+			return parameters.Any() ? parameters.Select(p => p.Name).Max(k => k.Length) : 0;
 		}
 
 		public string ProgramName()
@@ -354,5 +369,12 @@ namespace NConsoler
 		None = 0,
 		Windows = 1,
 		Linux = 2
+	}
+
+	public class ParameterMetadata
+	{
+		public string Name { get; set; }
+		public string Description { get; set; }
+		public object DefaultValue { get; set; }
 	}
 }
