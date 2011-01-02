@@ -410,6 +410,24 @@ namespace NConsoler.Tests
 			}
 		}
 
+		[Test]
+		public void should_work_with_instance_actions()
+		{
+			messenger.Write("test");
+			mocks.ReplayAll();
+
+			var instance = new InstanceActionsProgram();
+			Consolery.Run(instance, new[]{"test"});
+		}
+
+		public class InstanceActionsProgram
+		{
+			[Action]
+			public void Test(string arg)
+			{
+				messenger.Write(arg);
+			}
+		}
 		
 		[Test]
 		public void EnumDecimalTest()
@@ -472,14 +490,6 @@ namespace NConsoler.Tests
 		public void Teardown()
 		{
 			mocks.VerifyAll();
-		}
-	}
-
-	public class TestMess : IMessenger
-	{
-		public void Write(string message)
-		{	
-			Console.WriteLine(message);
 		}
 	}
 }
