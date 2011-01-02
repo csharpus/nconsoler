@@ -42,6 +42,16 @@ namespace NConsoler
 		/// <summary>
 		/// Runs an appropriate Action method
 		/// </summary>
+		/// <param name="target">instance where to search for Action methods</param>
+		/// <param name="args">Arguments that will be converted to Action method arguments</param>
+		public static void Run(object target, string[] args)
+		{
+			Run(target, args, new ConsoleMessenger());
+		}
+
+		/// <summary>
+		/// Runs an appropriate Action method
+		/// </summary>
 		/// <param name="targetType">Type where to search for Action methods</param>
 		/// <param name="args">Arguments that will be converted to Action method arguments</param>
 		/// <param name="messenger">Uses for writing messages instead of Console class methods</param>
@@ -50,7 +60,27 @@ namespace NConsoler
 		{
 			try
 			{
-				new Consolery(targetType, args, messenger, notationType).RunAction();
+				new Consolery(targetType, null, args, messenger, notationType).RunAction();
+			}
+			catch (NConsolerException e)
+			{
+				messenger.Write(e.Message);
+			}
+		}
+
+		/// <summary>
+		/// Runs an appropriate Action method
+		/// </summary>
+		/// <param name="targetType">Type where to search for Action methods</param>
+		/// <param name="args">Arguments that will be converted to Action method arguments</param>
+		/// <param name="messenger">Uses for writing messages instead of Console class methods</param>
+		/// <param name="notationType">Switch for command line syntax. Windows: /param:value Linux: -param value</param>
+		public static void Run(object target, string[] args, IMessenger messenger, Notation notationType = Notation.Windows)
+		{
+			Contract.Requires(target != null);
+			try
+			{
+				new Consolery(target.GetType(), target, args, messenger, notationType).RunAction();
 			}
 			catch (NConsolerException e)
 			{
@@ -64,9 +94,10 @@ namespace NConsoler
 		/// <param name="targetType">Type where to search for Action methods</param>
 		public static void Validate(Type targetType)
 		{
-			new Consolery(targetType, new string[] {}, new ConsoleMessenger(), Notation.None).ValidateMetadata();
+			new Consolery(targetType, null, new string[] {}, new ConsoleMessenger(), Notation.None).ValidateMetadata();
 		}
 
+		private readonly object _target;
 		private readonly Type _targetType;
 		private readonly string[] _args;
 		private readonly List<MethodInfo> _actionMethods = new List<MethodInfo>();
@@ -75,18 +106,19 @@ namespace NConsoler
 		private readonly Metadata _metadata;
 		private readonly MetadataValidator _metadataValidator;
 
-		public Consolery(Type targetType, string[] args, IMessenger messenger, Notation notationType)
+		public Consolery(Type targetType, object target, string[] args, IMessenger messenger, Notation notationType)
 		{
 			Contract.Requires(targetType != null);
 			Contract.Requires(args != null);
 			Contract.Requires(messenger != null);
 
+			_target = target;
 			_targetType = targetType;
 			_args = args;
 			_messenger = messenger;
 
 			_actionMethods = _targetType
-				.GetMethods(BindingFlags.Public | BindingFlags.Static)
+				.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
 				.Where(method => method.GetCustomAttributes(false).OfType<ActionAttribute>().Any())
 				.ToList();
 
@@ -163,7 +195,7 @@ namespace NConsoler
 		{
 			try
 			{
-				method.Invoke(null, _notation.BuildParameterArray(method));
+				method.Invoke(_target, _notation.BuildParameterArray(method));
 			}
 			catch (TargetInvocationException e)
 			{
