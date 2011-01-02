@@ -236,9 +236,16 @@ namespace NConsoler.Tests
 		}
 
 		[Test]
-		public void NotAllRequiredParametersIsSet()
+		public void NotAllRequiredParametersAreSet()
 		{
-			messenger.Write("Not all required parameters are set");
+			messenger.Write("usage: manyparametersprogram sParameter iParameter bParameter [/os:value] [/oi:number] [/ob]");
+			messenger.Write("    [/os:value]");
+			messenger.Write("        default value: '0'");
+			messenger.Write("    [/oi:number]");
+			messenger.Write("        default value: 0");
+			messenger.Write("    [/ob]");
+			messenger.Write("        default value: False");
+			messenger.Write("Error: Not all required parameters are set");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram),
 				new[] { "test" }, messenger);
@@ -465,6 +472,14 @@ namespace NConsoler.Tests
 		public void Teardown()
 		{
 			mocks.VerifyAll();
+		}
+	}
+
+	public class TestMess : IMessenger
+	{
+		public void Write(string message)
+		{	
+			Console.WriteLine(message);
 		}
 	}
 }

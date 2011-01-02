@@ -262,11 +262,17 @@ namespace NConsoler
 			int maxParameterNameLength = MaxKeyLength(parameters);
 			foreach (var parameter in parameters)
 			{
-				if (parameter.Description != String.Empty)
+				if (!string.IsNullOrEmpty( parameter.Description) || parameter.DefaultValue != null)
 				{
 					int difference = maxParameterNameLength - parameter.Name.Length + 2;
 
-					_messenger.Write(identation + parameter.Name + new String(' ', difference) + parameter.Description);
+					var message = identation + parameter.Name;
+					if(!string.IsNullOrEmpty(parameter.Description))
+					{
+						message += new String(' ', difference) + parameter.Description;
+					}
+
+					_messenger.Write(message);
 				}
 				if (parameter.DefaultValue != null)
 				{
