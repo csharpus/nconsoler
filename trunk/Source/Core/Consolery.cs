@@ -65,6 +65,8 @@ namespace NConsoler
 			catch (NConsolerException e)
 			{
 				messenger.Write(e.Message);
+				const int genericErrorExitCode = 1;
+				Environment.ExitCode = genericErrorExitCode;
 			}
 		}
 
