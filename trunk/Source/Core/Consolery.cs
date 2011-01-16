@@ -3,6 +3,8 @@
 // http://nconsoler.csharpus.com
 //
 
+using System.Linq.Expressions;
+
 namespace NConsoler
 {
 	using System;
@@ -73,7 +75,7 @@ namespace NConsoler
 		/// <summary>
 		/// Runs an appropriate Action method
 		/// </summary>
-		/// <param name="targetType">Type where to search for Action methods</param>
+		/// <param name="target">Type where to search for Action methods</param>
 		/// <param name="args">Arguments that will be converted to Action method arguments</param>
 		/// <param name="messenger">Uses for writing messages instead of Console class methods</param>
 		/// <param name="notationType">Switch for command line syntax. Windows: /param:value Linux: -param value</param>
@@ -193,20 +195,44 @@ namespace NConsoler
 			                                || _args[0] == "help"));
 		}
 
+		private delegate void Runner(object target, object[] parameters);
+
 		private void InvokeMethod(MethodInfo method)
 		{
-			try
+			var parametersParameter = Expression.Parameter(typeof (object[]), "parameters");
+			var parameters = GetParameters(method, parametersParameter);
+
+			var targetParameter = Expression.Parameter(typeof(object), "target");
+			
+			var instanceExpression = GetInstanceExpression(method, targetParameter);
+			var methodCall = Expression.Call(instanceExpression, method, parameters);
+
+			// ((Program) target).DoWork((string) parameters[0], (int) parameters[1]);
+			Expression
+				.Lambda<Runner>(methodCall, targetParameter, parametersParameter)
+				.Compile()
+				.Invoke(_target, _notation.BuildParameterArray(method));
+		}
+
+		private static UnaryExpression GetInstanceExpression(MethodInfo method, ParameterExpression targetParameter)
+		{
+			return !method.IsStatic
+			       	? Expression.Convert(targetParameter, method.ReflectedType)
+			       	: null;
+		}
+
+		private static IEnumerable<Expression> GetParameters(MethodInfo method, ParameterExpression parametersParameter)
+		{
+			var parameters = new List<Expression>();
+			var paramInfos = method.GetParameters();
+			for (var i = 0; i < paramInfos.Length; i++)
 			{
-				method.Invoke(_target, _notation.BuildParameterArray(method));
+				var arrayValue = Expression.ArrayIndex(parametersParameter, Expression.Constant(i));
+				var convertExpression = Expression.Convert(arrayValue, paramInfos[i].ParameterType);
+
+				parameters.Add(convertExpression);
 			}
-			catch (TargetInvocationException e)
-			{
-				if (e.InnerException != null)
-				{
-					throw new NConsolerException(e.InnerException.Message, e);
-				}
-				throw;
-			}
+			return parameters;
 		}
 	}
 
