@@ -359,23 +359,6 @@ namespace NConsoler.Tests
 			}
 		}
 
-		[Test]
-		public void Should_write_exeption_message()
-		{
-			messenger.Write("Incorrect arguments!");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(ThrowExceptionProgram), new[] {"value"}, messenger);
-		}
-
-		public class ThrowExceptionProgram
-		{
-			[Action]
-			public static void Test(string argument)
-			{
-				throw new ArgumentException("Incorrect arguments!");
-			}
-		}
-
 		public class OptionalDateTimeProgram
 		{
 			[Action]
