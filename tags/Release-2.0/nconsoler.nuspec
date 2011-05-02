@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+	<metadata>
+		<id>NConsoler</id>    
+		<title>NConsoler</title>
+		<version>2.0.0.0</version>
+		<authors>csharpus</authors>
+		<summary>NConsoler is an open source library for building .Net console applications</summary>
+		<description>Small library for parsing command line arguments in .net applications in extremely easy way, which can be even embedded to your application as source code (all the source code is in the one file). Using it is as simple as writing a method.</description>
+		<projectUrl>http://nconsoler.csharpus.com/</projectUrl>
+	</metadata>
+  <files>
+      <file src="Source\Core\bin\Release\*.dll" target="lib" />
+  </files>
+</package>
