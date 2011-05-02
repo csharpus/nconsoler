@@ -1,4 +1,21 @@
-NConsoleer 1.0
+NConsoler 2.1 upcoming release
+========================
+	- http://code.google.com/p/nconsoler/issues/list?can=1&q=Milestone%3DRelease2.1+&cells=tiles
+
+NConsoler 2.0
+========================
+	- Migrated to c# 4.0 and VS 2010
+	- Added NuGet support/created NuGet package
+	- Added error code when nconsoler fails
+	- Added .net 4.0 optional arguments support
+	- Added enum support
+	- Added primitives types support (such as decimal)
+	- Added nullables support
+	- Added array support
+	- Added non static methods support
+	- Set exit code for program if an exception was thrown
+
+NConsoler 1.0
 ========================
 
 Bugs Fixed:

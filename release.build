@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="PokeTest" default="Main" basedir=".">
 
-	<property name="version" value="1.0" />
+	<property name="version" value="2.0" />
 	
 	<target name="Main">
 		
@@ -43,7 +43,7 @@
 	<target name="Zip_packages">
 		<call target="Zip_primary_package" />
 		
-		<property name="module.name" value="HelloWorld" />
+		<!--<property name="module.name" value="HelloWorld" />
 		<call target="Build_module" />
 
 		<property name="module.name" value="Multiplier" />
@@ -53,7 +53,7 @@
 		<call target="Build_module" />
 
 		<property name="module.name" value="Rich" />
-		<call target="Build_module" />
+		<call target="Build_module" />-->
 	</target>
 
 	<target name="Build_module">
