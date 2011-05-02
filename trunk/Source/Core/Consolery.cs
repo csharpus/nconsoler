@@ -1,13 +1,12 @@
 ﻿//
-// NConsoler 2.0 RC
+// NConsoler 2.0
 // http://nconsoler.csharpus.com
 //
-
-using System.Linq.Expressions;
 
 namespace NConsoler
 {
 	using System;
+	using System.Linq.Expressions;
 	using System.Collections.Generic;
 	using System.Diagnostics.Contracts;
 	using System.Linq;

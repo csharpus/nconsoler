@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("http://csharpus.com")]
 [assembly: AssemblyProduct("NConsoler")]
-[assembly: AssemblyCopyright("Copyright © - 2010")]
+[assembly: AssemblyCopyright("Copyright csharpus © - 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
