@@ -1,28 +1,29 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Dynamic;
+using System.Reflection;
 using NUnit.Framework;
 using Rhino.Mocks;
 
 namespace NConsoler.Tests
 {
 	[TestFixture]
-	public class NConsolerTest
+	public class SimpleScenarios
 	{
-		MockRepository mocks;
-		static IMessenger messenger;
+		private static dynamic verifier;
 
 		[SetUp]
 		public void Setup()
 		{
-			mocks = new MockRepository();
-			messenger = mocks.CreateMock<IMessenger>();
+			verifier = new ExpandoObject();
 		}
 
 		[Test]
 		public void OneParameter()
 		{
-			messenger.Write("parameter");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram), new[] { "parameter" });
+
+			Assert.That(verifier.parameter, Is.EqualTo("parameter"));
 		}
 
 		public class OneParameterProgram
@@ -30,16 +31,59 @@ namespace NConsoler.Tests
 			[Action]
 			public static void RunProgram([Required]string parameter)
 			{
-				messenger.Write(parameter);
+				verifier.parameter = parameter;
 			}
 		}
 
 		[Test]
 		public void Should_run_program_when_only_optional_parameters_specified()
 		{
-			messenger.Write("True");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OnlyOptionalParametersProgram), new string[] { });
+
+			Assert.That(verifier.parameter, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void Should_run_program_when_specified_case_for_optional_argument_inconsistent_with_actual_parameters()
+		{
+			Consolery.Run(typeof(OnlyOptionalParametersProgram), new[] { "/-PARAMETER" });
+
+			Assert.That(verifier.parameter, Is.EqualTo(false));
+		}
+
+		public class OnlyOptionalParametersProgram
+		{
+			[Action]
+			public static void RunProgram([Optional(true)]bool parameter)
+			{
+				verifier.parameter = parameter;
+			}
+		}
+	}
+
+	[TestFixture]
+	public class NConsolerTest
+	{
+		MockRepository mocks;
+		static IMessenger messenger;
+
+		private static dynamic verifier;
+
+		[SetUp]
+		public void Setup()
+		{
+			mocks = new MockRepository();
+			messenger = mocks.CreateMock<IMessenger>();
+			verifier = new ExpandoObject();
+		}
+
+				public class OneParameterProgram
+		{
+			[Action]
+			public static void RunProgram([Required]string parameter)
+			{
+				messenger.Write(parameter);
+			}
 		}
 
 		public class OnlyOptionalParametersProgram
@@ -49,14 +93,6 @@ namespace NConsoler.Tests
 			{
 				messenger.Write(parameter.ToString());
 			}
-		}
-
-		[Test]
-		public void Should_run_program_when_specified_case_for_optional_argument_inconsistent_with_actual_parameters()
-		{
-			messenger.Write("False");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(OnlyOptionalParametersProgram), new[] { "/-PARAMETER" });
 		}
 
 		[Test]
