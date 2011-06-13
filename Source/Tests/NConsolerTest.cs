@@ -59,6 +59,190 @@ namespace NConsoler.Tests
 				verifier.parameter = parameter;
 			}
 		}
+
+		[Test]
+		public void ManyParameters()
+		{
+			Consolery.Run(typeof(ManyParametersProgram),
+				new[] { "string", "1", "true", "/os:string", "/oi:1", "/ob" });
+
+			Assert.That(verifier.sParameter, Is.EqualTo("string"));
+			Assert.That(verifier.iParameter, Is.EqualTo(1));
+			Assert.That(verifier.bParameter, Is.EqualTo(true));
+			Assert.That(verifier.osParameter, Is.EqualTo("string"));
+			Assert.That(verifier.oiParameter, Is.EqualTo(1));
+			Assert.That(verifier.obParameter, Is.EqualTo(true));
+		}
+
+		[Test]
+		public void RunConsoleProgramWithoutOptionalParameters()
+		{
+			Consolery.Run(typeof(ManyParametersProgram),
+				new[] { "string", "1", "true" });
+
+			Assert.That(verifier.sParameter, Is.EqualTo("string"));
+			Assert.That(verifier.iParameter, Is.EqualTo(1));
+			Assert.That(verifier.bParameter, Is.EqualTo(true));
+			Assert.That(verifier.osParameter, Is.EqualTo("0"));
+			Assert.That(verifier.oiParameter, Is.EqualTo(0));
+			Assert.That(verifier.obParameter, Is.EqualTo(false));
+		}
+
+		[Test]
+		public void NegativeBooleanParameter()
+		{
+			Consolery.Run(typeof(ManyParametersProgram),
+				new[] { "string", "1", "true", "/-ob" });
+
+			Assert.That(verifier.sParameter, Is.EqualTo("string"));
+			Assert.That(verifier.iParameter, Is.EqualTo(1));
+			Assert.That(verifier.bParameter, Is.EqualTo(true));
+			Assert.That(verifier.osParameter, Is.EqualTo("0"));
+			Assert.That(verifier.oiParameter, Is.EqualTo(0));
+			Assert.That(verifier.obParameter, Is.EqualTo(false));
+		}
+
+		public class ManyParametersProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Required]
+				string sParameter,
+				int iParameter,
+				[Required]
+				bool bParameter,
+				[Optional("0", "os")]
+				string osParameter,
+				[Optional(0, "oi")]
+				int oiParameter,
+				[Optional(false, "ob")]
+				bool obParameter)
+			{
+				verifier.sParameter = sParameter;
+				verifier.iParameter = iParameter;
+				verifier.bParameter = bParameter;
+				verifier.osParameter = osParameter;
+				verifier.oiParameter = oiParameter;
+				verifier.obParameter = obParameter;
+			}
+		}
+
+		[Test]
+		public void NullableParameter()
+		{
+			Consolery.Run(typeof(NullableParameterProgram), new[] { "10" });
+
+			Assert.That(verifier.i, Is.EqualTo(10));
+		}
+
+		public class NullableParameterProgram
+		{
+			[Action]
+			public static void RunProgram([Required]int? i)
+			{
+				verifier.i = i;
+			}
+		}
+
+		[Test]
+		public void EnumParameterTest()
+		{
+			Consolery.Run(typeof(EnumParameterProgram), new[] { "One" });
+
+			Assert.That(verifier.testEnum, Is.EqualTo(TestEnum.One));
+		}
+
+		public class EnumParameterProgram
+		{
+			[Action]
+			public static void RunProgram([Required]TestEnum testEnum)
+			{
+				verifier.testEnum = testEnum;
+			}
+		}
+
+		public enum TestEnum
+		{
+			One,
+			Two
+		}
+
+		[Test]
+		public void EnumDecimalTest()
+		{
+			Consolery.Run(typeof(EnumDecimalProgram), new[] { "1" });
+
+			Assert.That(verifier.d, Is.EqualTo(1));
+		}
+
+		public class EnumDecimalProgram
+		{
+			[Action]
+			public static void RunProgram([Required]decimal d)
+			{
+				verifier.d = d;
+			}
+		}
+
+		[Test]
+		public void should_work_with_instance_actions()
+		{
+			var instance = new InstanceActionsProgram();
+			Consolery.Run(instance, new[] { "test" });
+
+			Assert.That(verifier.arg, Is.EqualTo("test"));
+		}
+
+		public class InstanceActionsProgram
+		{
+			[Action]
+			public void Test(string arg)
+			{
+				verifier.arg = arg;
+			}
+		}
+
+		[Test]
+		public void Should_work_with_net40_optional_arguments()
+		{
+			Consolery.Run(typeof(Net40OptionalArgumentsProgram), new[] { "1" });
+
+			Assert.That(verifier.required, Is.EqualTo(1));
+			Assert.That(verifier.optional, Is.EqualTo(true));
+		}
+
+		public class Net40OptionalArgumentsProgram
+		{
+			[Action]
+			public static void Test(int required, bool optional = true)
+			{
+				verifier.required = required;
+				verifier.optional = optional;
+			}
+		}
+
+		[Test]
+		public void Should_work_without_arguments_in_action()
+		{
+			Consolery.Run(typeof(WithoutArgumentsProgram), new[] { "Test" });
+
+			Assert.That(verifier.TestCalled, Is.True);
+		}
+
+		public class WithoutArgumentsProgram
+		{
+			[Action]
+			public static void Test()
+			{
+				verifier.TestCalled = true;
+			}
+
+			[Action]
+			public static void Test1()
+			{
+				verifier.Test1Called = true;
+			}
+		}
 	}
 
 	[TestFixture]
@@ -67,59 +251,20 @@ namespace NConsoler.Tests
 		MockRepository mocks;
 		static IMessenger messenger;
 
-		private static dynamic verifier;
-
 		[SetUp]
 		public void Setup()
 		{
 			mocks = new MockRepository();
 			messenger = mocks.CreateMock<IMessenger>();
-			verifier = new ExpandoObject();
 		}
 
-				public class OneParameterProgram
+		public class OneParameterProgram
 		{
 			[Action]
 			public static void RunProgram([Required]string parameter)
 			{
 				messenger.Write(parameter);
 			}
-		}
-
-		public class OnlyOptionalParametersProgram
-		{
-			[Action]
-			public static void RunProgram([Optional(true)]bool parameter)
-			{
-				messenger.Write(parameter.ToString());
-			}
-		}
-
-		[Test]
-		public void ManyParameters()
-		{
-			messenger.Write("string 1 True string 1 True");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(ManyParametersProgram), 
-				new[] { "string", "1", "true", "/os:string", "/oi:1", "/ob" });
-		}
-
-		[Test]
-		public void RunConsoleProgramWithoutOptionalParameters()
-		{
-			messenger.Write("string 1 True 0 0 False");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(ManyParametersProgram),
-				new[] { "string", "1", "true" });
-		}
-
-		[Test]
-		public void NegativeBooleanParameter()
-		{
-			messenger.Write("string 1 True 0 0 False");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(ManyParametersProgram),
-				new[] { "string", "1", "true", "/-ob" });
 		}
 
 		public class ManyParametersProgram
@@ -410,99 +555,6 @@ namespace NConsoler.Tests
 			messenger.Write("31-12-2008");
 			mocks.ReplayAll();
 			Consolery.Run(typeof(OptionalDateTimeProgram), new[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
-		}
-
-		[Test]
-		public void Should_work_with_net40_optional_arguments()
-		{
-			messenger.Write("1 True");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(Net40OptionalArgumentsProgram), new[] { "1" }, messenger);
-		}
-
-		public class Net40OptionalArgumentsProgram
-		{
-			[Action]
-			public static void Test(int required, bool optional = true)
-			{
-				messenger.Write(required + " " + optional);
-			}
-		}
-
-		[Test]
-		public void should_work_with_instance_actions()
-		{
-			messenger.Write("test");
-			mocks.ReplayAll();
-
-			var instance = new InstanceActionsProgram();
-			Consolery.Run(instance, new[]{"test"});
-		}
-
-		public class InstanceActionsProgram
-		{
-			[Action]
-			public void Test(string arg)
-			{
-				messenger.Write(arg);
-			}
-		}
-		
-		[Test]
-		public void EnumDecimalTest()
-		{
-			messenger.Write("1");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(EnumDecimalProgram), new[] { "1" });
-		}
-
-		public class EnumDecimalProgram
-		{
-			[Action]
-			public static void RunProgram([Required]decimal d)
-			{
-				messenger.Write(d.ToString());
-			}
-		}
-
-		[Test]
-		public void EnumParameterTest()
-		{
-			messenger.Write("One");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(EnumParameterProgram), new[] { "One" });
-		}
-
-		public class EnumParameterProgram
-		{
-			[Action]
-			public static void RunProgram([Required]TestEnum testEnum)
-			{
-				messenger.Write(testEnum.ToString());
-			}
-		}
-
-		public enum TestEnum
-		{
-			One,
-			Two
-		}
-
-		[Test]
-		public void NullableParameter()
-		{
-			messenger.Write("10");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(NullableParameterProgram), new[] { "10" });
-		}
-
-		public class NullableParameterProgram
-		{
-			[Action]
-			public static void RunProgram([Required]int? i)
-			{
-				messenger.Write(i.ToString());
-			}
 		}
 
 		[TearDown]
