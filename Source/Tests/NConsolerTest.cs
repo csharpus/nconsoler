@@ -295,6 +295,123 @@ namespace NConsoler.Tests
 	}
 
 	[TestFixture]
+	public class ErrorSpecs
+	{
+		private static IMessenger messenger;
+
+		[SetUp]
+		public void Setup()
+		{
+			messenger = MockRepository.GenerateMock<IMessenger>();
+		}
+
+		[Test]
+		public void WithoutMethods()
+		{
+			
+			Consolery.Run(typeof(WithoutMethodsProgram), new[] { "string" }, messenger);
+
+			
+		}
+
+		[Test]
+		public void WrongParameterOrder()
+		{
+			Consolery.Run(typeof(WrongParameterOrderProgram),
+				new[] { "string" }, messenger);
+
+			Assert.That(ConsoleryErrorMessage(),
+				Is.EqualTo("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"RunProgram\" parameter \"requiredParameter\""));
+		}
+
+		public class WrongParameterOrderProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Optional("0")]string optionalParameter,
+				[Required]string requiredParameter)
+			{
+
+			}
+		}
+
+		public string ConsoleryErrorMessage()
+		{
+			var methodCalls = messenger.GetArgumentsForCallsMadeOn(m => m.Write(null));
+			if (methodCalls.Count == 0)
+			{
+				throw new Exception("There were no calls to Write method on messenger");
+			}
+			var firstCallArguments = methodCalls[0];
+			return (string)firstCallArguments[0];
+		}
+
+		public class WithoutMethodsProgram
+		{
+		}
+
+		[Test]
+		public void WrongDefaultValueForOptionalStringParameter()
+		{
+			Consolery.Run(typeof(WrongDefaultValueForOptionalStringParameterProgram),
+				new string[] { }, messenger);
+
+			Assert.That(ConsoleryErrorMessage(),
+				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
+		}
+
+		public class WrongDefaultValueForOptionalStringParameterProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Optional(10)]string optionalParameter)
+			{
+
+			}
+		}
+
+		[Test]
+		public void WrongDefaultValueForOptionalIntegerParameter()
+		{
+			Consolery.Run(typeof(WrongDefaultValueForOptionalIntegerParameterProgram),
+				new string[] { }, messenger);
+
+			Assert.That(ConsoleryErrorMessage(),
+				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
+		}
+
+		public class WrongDefaultValueForOptionalIntegerParameterProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Optional("test")]int optionalParameter)
+			{
+
+			}
+		}
+
+		[Test]
+		public void VeryBigDefaultValueForOptionalIntegerParameter()
+		{
+			Consolery.Run(typeof(VeryBigDefaultValueForOptionalIntegerParameterProgram),
+				new string[] { }, messenger);
+
+			Assert.That(ConsoleryErrorMessage(),
+				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
+		}
+
+		public class VeryBigDefaultValueForOptionalIntegerParameterProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Optional("1234567890")]int optionalParameter)
+			{
+
+			}
+		}
+	}
+
+	[TestFixture]
 	public class NConsolerTest
 	{
 		MockRepository mocks;
@@ -338,94 +455,15 @@ namespace NConsoler.Tests
 			}
 		}
 
-		[Test]
-		public void WithoutMethods()
-		{
-			messenger.Write("Can not find any public static method marked with [Action] attribute in type \"WithoutMethodsProgram\"");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(WithoutMethodsProgram), new[] { "string" }, messenger);
-		}
+		
 
-		public class WithoutMethodsProgram
-		{
-		}
+		
 
-		[Test]
-		public void WrongParameterOrder()
-		{
-			messenger.Write("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"RunProgram\" parameter \"requiredParameter\"");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(WrongParameterOrderProgram), 
-				new[] { "string" }, messenger);
-		}
+		
 
-		public class WrongParameterOrderProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Optional("0")]string optionalParameter,
-				[Required]string requiredParameter)
-			{
+		
 
-			}
-		}
-
-		[Test]
-		public void WrongDefaultValueForOptionalStringParameter()
-		{
-			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(WrongDefaultValueForOptionalStringParameterProgram),
-				new string[] { }, messenger);
-		}
-
-		public class WrongDefaultValueForOptionalStringParameterProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Optional(10)]string optionalParameter)
-			{
-
-			}
-		}
-
-		[Test]
-		public void WrongDefaultValueForOptionalIntegerParameter()
-		{
-			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(WrongDefaultValueForOptionalIntegerParameterProgram),
-				new string[] { }, messenger);
-		}
-
-		public class WrongDefaultValueForOptionalIntegerParameterProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Optional("test")]int optionalParameter)
-			{
-
-			}
-		}
-
-		[Test]
-		public void VeryBigDefaultValueForOptionalIntegerParameter()
-		{
-			messenger.Write("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(VeryBigDefaultValueForOptionalIntegerParameterProgram),
-				new string[] { }, messenger);
-		}
-
-		public class VeryBigDefaultValueForOptionalIntegerParameterProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Optional("1234567890")]int optionalParameter)
-			{
-
-			}
-		}
+		
 
 		[Test]
 		public void DuplicatedParameterNames()
