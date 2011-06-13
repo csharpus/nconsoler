@@ -243,6 +243,55 @@ namespace NConsoler.Tests
 				verifier.Test1Called = true;
 			}
 		}
+
+		[Test]
+		public void when_specified_case_for_optional_argument_inconsistent_with_actual_parameters()
+		{
+			Consolery.Run(typeof(OnlyOptionalParametersProgram), new[] { "/-PARAMETER" });
+
+			Assert.That(verifier.parameter, Is.EqualTo(false));
+		}
+
+		public class ExceptionalProgram
+	{
+		public static int RunCount;
+
+		[Action]
+		public static void RunProgram([Optional(true)]bool parameter)
+		{
+			throw new SpecificException();
+		}
+	}
+
+	public class SpecificException : Exception
+	{
+		public SpecificException() {}
+	}
+
+		[Test]
+		public void when_metadata_validation_fails_should_set_error_code()
+		{
+			Consolery.Run(typeof(ExceptionalProgram), new[] { "wrong" });
+
+			Assert.That(Environment.ExitCode, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void when_target_method_throws_an_exception()
+		{
+			Exception exception = null;
+			try
+			{
+				Consolery.Run(typeof (ExceptionalProgram), new[] {"/-parameter"});
+			}
+			catch(Exception e)
+			{
+				exception = e;
+			}
+
+			Assert.That(exception, Is.Not.Null);
+			Assert.That(exception.GetType(), Is.EqualTo(typeof(SpecificException)));
+		}
 	}
 
 	[TestFixture]

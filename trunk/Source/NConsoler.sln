@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickStart", "..\Examples\Q
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rich", "..\Examples\Rich\Rich.csproj", "{795BB232-32A4-4F2B-B0A7-589C2E16D463}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specs", "Specs\Specs.csproj", "{FC5B76E3-2D1F-45F0-AD67-859581786C48}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Combiner", "Combiner\Combiner.csproj", "{45990BD4-FD94-44DA-8B57-ACED33620EB3}"
 EndProject
 Global
@@ -101,16 +99,6 @@ Global
 		{795BB232-32A4-4F2B-B0A7-589C2E16D463}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{795BB232-32A4-4F2B-B0A7-589C2E16D463}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{795BB232-32A4-4F2B-B0A7-589C2E16D463}.Release|x86.ActiveCfg = Release|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{FC5B76E3-2D1F-45F0-AD67-859581786C48}.Release|x86.ActiveCfg = Release|Any CPU
 		{45990BD4-FD94-44DA-8B57-ACED33620EB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{45990BD4-FD94-44DA-8B57-ACED33620EB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45990BD4-FD94-44DA-8B57-ACED33620EB3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
