@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Dynamic;
-using System.Reflection;
+using System.Linq;
 using NUnit.Framework;
 using Rhino.Mocks;
 
@@ -292,6 +291,23 @@ namespace NConsoler.Tests
 			Assert.That(exception, Is.Not.Null);
 			Assert.That(exception.GetType(), Is.EqualTo(typeof(SpecificException)));
 		}
+
+		public class OptionalDateTimeProgram
+		{
+			[Action]
+			public static void Test(DateTime required, [Optional("31-12-2008", "dtDate")]DateTime optional)
+			{
+				verifier.date = optional;
+			}
+		}
+
+		[Test]
+		public void Should_correctly_convert_to_datetime_from_optional_attribute_default_value()
+		{
+			Consolery.Run(typeof(OptionalDateTimeProgram), new[] { "01-01-2009", "/dtDate:31-12-2008" });
+
+			Assert.That(verifier.date, Is.EqualTo(new DateTime(2008, 12, 31)));
+		}
 	}
 
 	[TestFixture]
@@ -320,7 +336,7 @@ namespace NConsoler.Tests
 			Consolery.Run(typeof(WrongParameterOrderProgram),
 				new[] { "string" }, messenger);
 
-			Assert.That(ConsoleryErrorMessage(),
+			Assert.That(ConsoleOutput(),
 				Is.EqualTo("It is not allowed to write a parameter with a Required attribute after a parameter with an Optional one. See method \"RunProgram\" parameter \"requiredParameter\""));
 		}
 
@@ -335,15 +351,14 @@ namespace NConsoler.Tests
 			}
 		}
 
-		public string ConsoleryErrorMessage()
+		public string ConsoleOutput()
 		{
 			var methodCalls = messenger.GetArgumentsForCallsMadeOn(m => m.Write(null));
 			if (methodCalls.Count == 0)
 			{
 				throw new Exception("There were no calls to Write method on messenger");
 			}
-			var firstCallArguments = methodCalls[0];
-			return (string)firstCallArguments[0];
+			return String.Join(Environment.NewLine, methodCalls.Select(a => (string) a[0]).ToArray());
 		}
 
 		public class WithoutMethodsProgram
@@ -356,7 +371,7 @@ namespace NConsoler.Tests
 			Consolery.Run(typeof(WrongDefaultValueForOptionalStringParameterProgram),
 				new string[] { }, messenger);
 
-			Assert.That(ConsoleryErrorMessage(),
+			Assert.That(ConsoleOutput(),
 				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
 		}
 
@@ -376,7 +391,7 @@ namespace NConsoler.Tests
 			Consolery.Run(typeof(WrongDefaultValueForOptionalIntegerParameterProgram),
 				new string[] { }, messenger);
 
-			Assert.That(ConsoleryErrorMessage(),
+			Assert.That(ConsoleOutput(),
 				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
 		}
 
@@ -396,7 +411,7 @@ namespace NConsoler.Tests
 			Consolery.Run(typeof(VeryBigDefaultValueForOptionalIntegerParameterProgram),
 				new string[] { }, messenger);
 
-			Assert.That(ConsoleryErrorMessage(),
+			Assert.That(ConsoleOutput(),
 				Is.EqualTo("Default value for an optional parameter \"optionalParameter\" in method \"RunProgram\" can not be assigned to the parameter"));
 		}
 
@@ -409,27 +424,44 @@ namespace NConsoler.Tests
 
 			}
 		}
-	}
 
-	[TestFixture]
-	public class NConsolerTest
-	{
-		MockRepository mocks;
-		static IMessenger messenger;
-
-		[SetUp]
-		public void Setup()
+		[Test]
+		public void DuplicatedParameterNames()
 		{
-			mocks = new MockRepository();
-			messenger = mocks.CreateMock<IMessenger>();
+			Consolery.Run(typeof(DuplicatedParameterNamesProgram),
+				new string[] { }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo("Found duplicated parameter name \"a\" in method \"RunProgram\". Please check alt names for optional parameters"));
 		}
 
-		public class OneParameterProgram
+		public class DuplicatedParameterNamesProgram
 		{
 			[Action]
-			public static void RunProgram([Required]string parameter)
+			public static void RunProgram(
+				[Optional(1, "a")]int optionalParameter1,
+				[Optional(2, "a")]int optionalParameter2)
 			{
-				messenger.Write(parameter);
+
+			}
+		}
+
+		[Test]
+		public void DuplicatedParameterAttributes()
+		{
+			Consolery.Run(typeof(DuplicatedParameterAttributesProgram),
+				new[] { "parameter" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo("More than one attribute is applied to the parameter \"parameter\" in the method \"RunProgram\""));
+		}
+
+		public class DuplicatedParameterAttributesProgram
+		{
+			[Action]
+			public static void RunProgram(
+				[Required][Optional("")]string parameter)
+			{
 			}
 		}
 
@@ -450,117 +482,75 @@ namespace NConsoler.Tests
 				bool obParameter)
 			{
 				messenger.Write(
-					String.Format("{0} {1} {2} {3} {4} {5}", 
+					String.Format("{0} {1} {2} {3} {4} {5}",
 						sParameter, iParameter, bParameter, osParameter, oiParameter, obParameter));
-			}
-		}
-
-		
-
-		
-
-		
-
-		
-
-		
-
-		[Test]
-		public void DuplicatedParameterNames()
-		{
-			messenger.Write("Found duplicated parameter name \"a\" in method \"RunProgram\". Please check alt names for optional parameters");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(DuplicatedParameterNamesProgram),
-				new string[] { }, messenger);
-		}
-
-		public class DuplicatedParameterNamesProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Optional(1, "a")]int optionalParameter1,
-				[Optional(2, "a")]int optionalParameter2)
-			{
-
-			}
-		}
-
-		[Test]
-		public void DuplicatedParameterAttributes()
-		{
-			messenger.Write("More than one attribute is applied to the parameter \"parameter\" in the method \"RunProgram\"");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(DuplicatedParameterAttributesProgram),
-				new[] { "parameter" }, messenger);
-		}
-
-		public class DuplicatedParameterAttributesProgram
-		{
-			[Action]
-			public static void RunProgram(
-				[Required][Optional("")]string parameter)
-			{
 			}
 		}
 
 		[Test]
 		public void NotAllRequiredParametersAreSet()
 		{
-			messenger.Write("usage: manyparametersprogram sParameter iParameter bParameter [/os:value] [/oi:number] [/ob]");
-			messenger.Write("    [/os:value]");
-			messenger.Write("        default value: '0'");
-			messenger.Write("    [/oi:number]");
-			messenger.Write("        default value: 0");
-			messenger.Write("    [/ob]");
-			messenger.Write("        default value: False");
-			messenger.Write("Error: Not all required parameters are set");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(ManyParametersProgram),
 				new[] { "test" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo(
+@"usage: manyparametersprogram sParameter iParameter bParameter [/os:value] [/oi:number] [/ob]
+    [/os:value]
+        default value: '0'
+    [/oi:number]
+        default value: 0
+    [/ob]
+        default value: False
+Error: Not all required parameters are set"));
 		}
 
 		[Test]
 		public void UnknownParameter()
 		{
-			messenger.Write("Unknown parameter name /unknown:value");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
 				new[] { "required", "/unknown:value" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo("Unknown parameter name /unknown:value"));
 		}
 
 		[Test]
 		public void UnknownBooleanParameterWithNegativeSign()
 		{
-			messenger.Write("Unknown parameter name /-unknown");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
 				new[] { "required", "/-unknown" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo("Unknown parameter name /-unknown"));
 		}
 
 		[Test]
 		public void UnknownBooleanParameter()
 		{
-			messenger.Write("Unknown parameter name /unknown");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OneParameterProgram),
 				new[] { "required", "/unknown" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo("Unknown parameter name /unknown"));
 		}
 
-		[Test]
-		public void Should_choose_correct_method_if_more_than_one_method()
+		public class OneParameterProgram
 		{
-			messenger.Write("m2test");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(TwoActionsProgram),
-				new[] { "Test2", "test" }, messenger);
+			[Action]
+			public static void RunProgram([Required]string parameter)
+			{
+				messenger.Write(parameter);
+			}
 		}
+
 
 		[Test]
 		public void Should_show_help_for_a_particular_message()
 		{
-			messenger.Write("usage: twoactionsprogram test2 parameter");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(TwoActionsProgram), new[] { "help", "Test2" }, messenger);
+
+			Assert.That(ConsoleOutput(), Is.EqualTo("usage: twoactionsprogram test2 parameter"));
 		}
 
 		public class TwoActionsProgram
@@ -569,27 +559,29 @@ namespace NConsoler.Tests
 			public static void Test1(
 				[Required]string parameter)
 			{
-				messenger.Write("m1" + parameter);
+				
 			}
 
 			[Action]
 			public static void Test2(
 				[Required]string parameter)
 			{
-				messenger.Write("m2" + parameter);
+				
 			}
 		}
 
 		[Test]
 		public void Should_show_default_value_for_optional_parameter()
 		{
-			messenger.Write("usage: oneactionprogramwithoptionalparameters [/parameter1:value] [/param2:number]");
-			messenger.Write("    [/parameter1:value]  param1 desc");
-			messenger.Write("        default value: 'value1'");
-			messenger.Write("    [/param2:number]     desc2");
-			messenger.Write("        default value: 42");
-			mocks.ReplayAll();
 			Consolery.Run(typeof(OneActionProgramWithOptionalParameters), new[] { "help", "Test" }, messenger);
+
+			Assert.That(ConsoleOutput(),
+				Is.EqualTo(
+@"usage: oneactionprogramwithoptionalparameters [/parameter1:value] [/param2:number]
+    [/parameter1:value]  param1 desc
+        default value: 'value1'
+    [/param2:number]     desc2
+        default value: 42"));
 		}
 
 		public class OneActionProgramWithOptionalParameters
@@ -601,53 +593,6 @@ namespace NConsoler.Tests
 			{
 				messenger.Write("m1" + param2);
 			}
-		}
-
-		[Test]
-		public void Should_work_without_arguments_in_action()
-		{
-			messenger.Write("test");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(WithoutArgumentsProgram),
-				new[] { "Test" }, messenger);
-		}
-
-		public class WithoutArgumentsProgram
-		{
-			[Action]
-			public static void Test()
-			{
-				messenger.Write("test");
-			}
-
-			[Action]
-			public static void Test1()
-			{
-				messenger.Write("test1");
-			}
-		}
-
-		public class OptionalDateTimeProgram
-		{
-			[Action]
-			public static void Test(DateTime required, [Optional("31-12-2008", "dtDate")]DateTime optional)
-			{
-				messenger.Write(optional.ToString("dd-MM-yyyy"));
-			}
-		}
-
-		[Test]
-		public void Should_correctly_convert_to_datetime_from_optional_attribute_default_value()
-		{
-			messenger.Write("31-12-2008");
-			mocks.ReplayAll();
-			Consolery.Run(typeof(OptionalDateTimeProgram), new[] { "01-01-2009", "/dtDate:31-12-2008" }, messenger);
-		}
-
-		[TearDown]
-		public void Teardown()
-		{
-			mocks.VerifyAll();
 		}
 	}
 }
