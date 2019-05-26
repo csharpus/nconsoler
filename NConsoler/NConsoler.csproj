@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.0.0</Version>
+    <Version>3.0.0-beta01</Version>
     <Authors>csharpus</Authors>
     <Company />
     <Description>Small library for parsing command line arguments in .net applications in extremely easy way, which can be even embedded to your application as source code (all the source code is in the one file). Using it is as simple as writing a method.</Description>
@@ -11,6 +11,10 @@
     <PackageProjectUrl>https://github.com/csharups/nconsoler</PackageProjectUrl>
     <RepositoryUrl>https://github.com/csharups/nconsoler.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
 </Project>
