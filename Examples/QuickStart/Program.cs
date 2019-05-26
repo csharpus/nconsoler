@@ -1,20 +1,14 @@
 ﻿using System;
 using NConsoler;
 
-class Program
+internal class Program
 {
-	static void Main(string[] args)
-	{
-		Consolery.Run(typeof(Program), args);
-	}
+    private static void Main(string[] args) => Consolery.Run(typeof(Program), args);
 
-	[Action]
-	public static void DoWork(
-		  [Required]
+    [Action]
+    public static void DoWork(
+          [Required]
           int count,
-		  [Optional(false)]
-          bool flag)
-	{
-		Console.WriteLine("DoWork {0} {1}", count, flag);
-	}
+          [Optional(false)]
+          bool flag) => Console.WriteLine("DoWork {0} {1}", count, flag);
 }
