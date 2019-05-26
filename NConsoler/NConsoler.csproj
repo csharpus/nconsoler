@@ -17,4 +17,8 @@
     <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="$(ProjectDir)combine.cmd $(TargetDir)..\NConsoler.cs" />
+  </Target>
+
 </Project>
