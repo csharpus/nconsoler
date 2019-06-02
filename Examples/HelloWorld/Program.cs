@@ -1,16 +1,10 @@
-﻿using System;
+using System;
 using NConsoler;
 
-class Program
+internal class Program
 {
-	static void Main(string[] args)
-	{
-		Consolery.Run(typeof(Program), args);
-	}
+    private static void Main(string[] args) => Consolery.Run(typeof(Program), args);
 
-	[Action]
-	public static void ShowMessage(string message)
-	{
-		Console.WriteLine(message);
-	}
+    [Action]
+    public static void ShowMessage(string message) => Console.WriteLine(message);
 }
